@@ -1,4 +1,4 @@
-function [ z0 ] = updatez0_i_j_3( alpha, y, z0_init, D, w, w0, u0, rho, scaleFac, varargin  )
+function [ z0 ] = updatez0_v3( alpha, y, z0_init, D, w, w0, u0, rho, scaleFac, varargin  )
 %updatez0_i,j using lassoglm and fmincon function to implement
 %y (location i, j) [s 1], z0 (location i, j) [s 1], D[s m] 
 %w (location i, j) [m 1], w0 (location i, j) scalar, u0 (location i, j)[s 1]
