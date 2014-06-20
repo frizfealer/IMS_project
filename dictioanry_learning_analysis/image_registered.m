@@ -2,6 +2,11 @@ function [fHandle, rrBioSam, rMSSam, macSam ] = image_registered( bioFilePath, m
 % bioFilePath='registration_example\DSC01573.jpg';
 % macFilePath='registration_example\DSC00000.jpg';
 % MSFilePath='registration_example\example.jpg';
+% requireInfoPath='registration_example\registerInfo.mat'
+% shiftFlag=1, for this example. Because the DSC00000 is differet from
+% DSC01573
+% alphaVal, the value of transparent, 0 means non-visible.
+% verbose = 1, generating intermediate results
 bioSam = imread( bioFilePath );
 MSSam = imread( MSFilePath );
 macSam = imread( macFilePath );
