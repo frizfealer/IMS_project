@@ -54,26 +54,55 @@ else
     fID = 1;
 end
 
-if ~isempty( param )
+if isfield( param, 'OUTER_IT_NUM')
     OUTER_IT_NUM = param.OUTER_IT_NUM;
-    ADMM_IT_NUM = param.ADMM_IT_NUM;
-    UP_D_IT_NUM = param.UP_D_IT_NUM;
-    HES_FLAG = param.HES_FLAG;
-    CLUSTER_NUM = param.CLUSTER_NUM;
-    SAVE_TEM_PERIOD = param.SAVE_TEM_PERIOD;
-    INNER_IT_RED_FLAG = param.INNER_IT_RED_FLAG;
-    LATE_UPDATE_FLAG = param.LATE_UPDATE_FLAG;
-    LATE_UPDATE_PERCENT = param.LATE_UPDATE_PERCENT;
 else
     OUTER_IT_NUM = 100;
+end
+if isfield( param, 'ADMM_IT_NUM' )
+    ADMM_IT_NUM = param.ADMM_IT_NUM;
+else
     ADMM_IT_NUM = 100;
+end
+if isfield( param, 'UP_D_IT_NUM' )
+    UP_D_IT_NUM = param.UP_D_IT_NUM;
+else
     UP_D_IT_NUM = 200;
+end
+if isfield( param, 'HES_FLAG' )
+    HES_FLAG = param.HES_FLAG;
+else
     HES_FLAG = 1;
+end
+if isfield( param, 'CLUSTER_NUM' )
+    CLUSTER_NUM = param.CLUSTER_NUM;
+else
     CLUSTER_NUM = 12;
+end
+if isfield( param, 'SAVE_TEM_PERIOD' )
+    SAVE_TEM_PERIOD = param.SAVE_TEM_PERIOD;
+else
     SAVE_TEM_PERIOD = 5;
+end
+if isfield( param, 'INNER_IT_RED_FLAG' )
+    INNER_IT_RED_FLAG = param.INNER_IT_RED_FLAG;
+else
     INNER_IT_RED_FLAG = 0;
+end
+if isfield( param, 'LATE_UPDATE_FLAG' )
+    LATE_UPDATE_FLAG = param.LATE_UPDATE_FLAG;
+else
     LATE_UPDATE_FLAG = 1;
+end
+if isfield( param, 'LATE_UPDATE_PERCENT' )
+    LATE_UPDATE_PERCENT = param.LATE_UPDATE_PERCENT;
+else
     LATE_UPDATE_PERCENT = 0.2;
+end
+if isfield( param, 'CLUSTER_NAME' )
+    CLUSTER_NAME = param.CLUSTER_NAME;
+else
+    CLUSTER_NAME = 'local';
 end
 LPAry = zeros( 1, OUTER_IT_NUM+1 );
 
@@ -114,7 +143,10 @@ end
 
 indMap = BlkDS.indMap;
 
-%% manaing late update for some dictionary elements
+%% managing late update for some dictionary elements
+if matlabpool('size') == 0
+    matlabpool( 'open', CLUSTER_NAME, CLUSTER_NUM );
+end
 validMap = indMap .* aMatrix;
 yy = inY(:, validMap==1);
 if LATE_UPDATE_FLAG ==1
@@ -127,8 +159,7 @@ fprintf( 'parameters: outer iteration number = %d, ', OUTER_IT_NUM );
 fprintf( 'ADMM iteration number = %d, Hessian flag for update D = %d, ', ADMM_IT_NUM, HES_FLAG );
 fprintf( 'Cluster number used to update = %d, ', CLUSTER_NUM );
 fprintf( 'SAVE_TEM_PERIOUD = %d, Inner iteration reduce flag = %d, ', SAVE_TEM_PERIOD, INNER_IT_RED_FLAG );
-fprintf( 'LATE_UPDATE_FLAG = %d LATE_UPDATE_PERCENT=%g\n', LATE_UPDATE_FLAG, LATE_UPDATE_PERCENT  );
-% matlabpool( 'open', 'local', CLUSTER_NUM );
+fprintf( 'LATE_UPDATE_FLAG = %d, LATE_UPDATE_PERCENT=%g\n', LATE_UPDATE_FLAG, LATE_UPDATE_PERCENT  );
 for it = 1:OUTER_IT_NUM
     fprintf( fID, 'iteration %d\n', it );
     curRhoAry = zeros( ADMM_IT_NUM, 1 );
@@ -342,19 +373,19 @@ for it = 1:OUTER_IT_NUM
     %update D
     if INNER_IT_RED_FLAG == 1
         if it < floor(ADMM_IT_NUM*0.8)
-            UP_D_IT_NUM = round( UP_D_IT_NUM / 2 );
+            M_UP_D_IT_NUM = round( UP_D_IT_NUM / 2 );
         else
-            UP_D_IT_NUM = 150;
+            M_UP_D_IT_NUM = UP_D_IT_NUM;
         end
     else
-        UP_D_IT_NUM = 150;
+        M_UP_D_IT_NUM = UP_D_IT_NUM;
     end
     validMap = indMap .* aMatrix;
     if isempty( deInfo )
         if LATE_UPDATE_FLAG == 1 && it < floor(OUTER_IT_NUM*0.8) 
-            [ relD ] = updateD_v5( inY, relW, outW0, relD, DTemplate(:, rSet), validMap, HES_FLAG, phi, scaleFactor, UP_D_IT_NUM );
+            [ relD ] = updateD_v5( inY, relW, outW0, relD, DTemplate(:, rSet), validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM );
         else
-            [ relD ] = updateD_v5( inY, relW, outW0, relD, DTemplate, validMap, HES_FLAG, phi, scaleFactor, UP_D_IT_NUM );
+            [ relD ] = updateD_v5( inY, relW, outW0, relD, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM );
         end
     else
         if deInfo.dWFlag ~= 1

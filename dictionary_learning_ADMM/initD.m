@@ -12,6 +12,11 @@ if strcmp( method, 'random' ) == 1
         idx = idx(1:thres);
         dIdx = idx(randi(thres));
         outD(cSpec, i) = ins(:, dIdx);
+        if norm( outD(cSpec, i), 2 ) == 0
+            keyboard;
+            dIdx = idx(randi(thres));
+            outD(cSpec, i) = ins(:, dIdx);
+        end
         outD(:, i) = outD(:, i)./ norm( outD(cSpec, i), 2 );
     end
 end
