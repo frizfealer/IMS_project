@@ -1,112 +1,54 @@
-% bioSam = imread('D:\Users\YeuChern\Dropbox\unc\CS\RA\Project_dictionaryLearning_IMS\data\2013_Bmyc_Paeni_Early_LP\DSC01573.jpg');
-% baseOfMac = imread('D:\Users\YeuChern\Dropbox\unc\CS\RA\Project_dictionaryLearning_IMS\data\2013_Bmyc_Paeni_Early_LP\DSC01582.jpg');
-% msSam = imread('D:\Users\YeuChern\Dropbox\unc\CS\RA\Project_dictionaryLearning_IMS\data\2013_Bmyc_Paeni_Early_LP\example.jpg');
-% [nRow, nCol, ~] = size( msSam );
-% bioSam=imresize(bioSam,[nRow,nCol]);
-% baseOfMac=imresize(baseOfMac,[nRow,nCol]);
-% imwrite(bioSam,'bioSam.jpg');
-% imwrite(baseOfMac,'baseOfMac.jpg');
-% figure, imshow(bioSam)
-% figure, imshow(baseOfMac)
-% figure; imshow(msSam);
-% cpselect(bioSam, orthophoto);
-% cpselect(msSam, orthophoto);
-% cpselect(msSam, bioSam);
-% save( 'registeredPnt.mat', 'input_points', 'base_points','input_points1', 'base_points1');
-
-bioSam = imread('D:\Users\YeuChern\Dropbox\unc\CS\RA\Project_dictionaryLearning_IMS\data\2013_Bmyc_Paeni_Early_LP\bioSam.jpg');
-baseOfMac = imread('D:\Users\YeuChern\Dropbox\unc\CS\RA\Project_dictionaryLearning_IMS\data\2013_Bmyc_Paeni_Early_LP\baseOfMac.jpg');
-msSam = imread('D:\Users\YeuChern\Dropbox\unc\CS\RA\Project_dictionaryLearning_IMS\data\2013_Bmyc_Paeni_Early_LP\example.jpg');
-cpselect(bioSam, baseOfMac);
-cpselect(msSam, baseOfMac);
-save( 'registeredPnt.mat', 'input_points', 'base_points','input_points1', 'base_points1');
-
-% rBioSam=imresize(rBioSam,[nRow,nCol]);
-figure;
-baseOfMac = imread('D:\Users\YeuChern\Dropbox\unc\CS\RA\Project_dictionaryLearning_IMS\data\2013_Bmyc_Paeni_Early_LP\DSC01582.jpg');
-imshow(baseOfMac);
-
-hold on
-h = imshow(rBioSam);
-set( h, 'AlphaData', .7 );
-
-rMsSam = imwarp(msSam, mytform2);
-%rMsSam=imresize(rMsSam,[nRow,nCol]);
-figure;
-h=imshow(baseOfMac);
-hold on
-h = imshow(rMsSam);
-set(h,'AlphaData',.5);
-hold off
-
-figure;
-h=imshow(rMsSam);
-hold on
-h = imshow(baseOfMac);
-set(h,'AlphaData',.7);
-hold off
-alpha(0.1);
-
-% load( 'registeredPnt.mat' );
-% mytform = fitgeotrans(input_points, base_points, 'affine');
-% save( 'transInfo.mat', 'mytform' );
-% 
-% registered = imwarp(bioSam, mytform);
-% figure; subplot(1,2,1); imshow(baseOfMac);
-% subplot(1,2,2); imshow(registered);
-
-% figure; subplot(1,2,1); imshow(registered);
-% subplot(1,2,2); imshow(bioSam);
-
-msSam = imread('D:\Users\YeuChern\Dropbox\unc\CS\RA\Project_dictionaryLearning_IMS\data\2013_Bmyc_Paeni_Early_LP\example.jpg');
-figure, imshow(msSam)
-cpselect(msSam, orthophoto);
-save( 'registeredPnt2.mat', 'input_points1', 'base_points1');
- figure;
- imshow(baseOfMac); 
- hold on 
- h = imshow(msSam); 
- hold off
- alpha(0.8);
-keyboard();
-
-
-registered2s = imwarp(msSam, mytform2);
-figure; subplot(1,2,1); imshow(baseOfMac);
-subplot(1,2,2); imshow(registered2s);
-
-figure;
-imshow(orthophoto);
-hold on
-h = imshow(registered);
-hold off
-alpha(0.8);
-
-
-unregistered2 = imread('DSC01573.jpg');
-unregistered2s = imresize(unregistered2, 0.1275);
-
-
-cpselect(unregistered2s, unregistereds);
-save( 'registeredPnt.mat', 'input_points', 'base_points', 'input_points2', 'base_points2' );
-
-load( 'registeredPnt.mat' );
-mytform2 = fitgeotrans(input_points2, base_points2, 'affine');
-save( 'transInfo.mat', 'mytform', 'mytform2' );
-
-registered2s = imwarp(unregistered2s, mytform2);
-
- figure;
- imshow(unregistereds); 
- hold on 
- h = imshow(registered2s); 
- hold off
- alpha(0.8);
- 
- registered3 = imwarp(registered2s, mytform);
- figure;
-imshow(orthophoto);
-hold on
-h = imshow(registered3);
-hold off
-alpha(0.8);
+function [fHandle, rrBioSam, rMSSam, macSam ] = image_registered( bioFilePath, macFilePath, MSFilePath, requireInfoPath, shiftFlag, alphaVal, verbose )
+% bioFilePath='registration_example\DSC01573.jpg';
+% macFilePath='registration_example\DSC00000.jpg';
+% MSFilePath='registration_example\example.jpg';
+bioSam = imread( bioFilePath );
+MSSam = imread( MSFilePath );
+macSam = imread( macFilePath );
+if isempty( requireInfoPath )
+    cpselect( bioSam, macSam );
+    cpselect( MSSam, macSam );
+%     save( 'registeredPnt.mat', 'input_points', 'base_points','input_points2', 'base_points2');
+    mytForm = fitgeotrans( input_points, base_points, 'projective' );
+    mytForm2 = fitgeotrans( input_points2, base_points2, 'projective' );
+%     save( 'transInfo.mat', 'mytForm', 'mytForm2' );
+    requireInfo.input_points = input_points;
+    requireInfo.base_points = base_points;
+    requireInfo.input_points2 = input_points2;
+    requireInfo.base_points2 = base_points2;
+    requireInfo.mytForm = mytForm;
+    requireInfo.mytForm2 = mytForm2;
+    save( 'registerInfo.mat', 'requireInfo' );
+else
+    load( requireInfoPath );
+    rBioSam = imwarp( bioSam, requireInfo.mytForm );
+    rMSSam = imwarp( MSSam, requireInfo.mytForm2 );
+end
+if shiftFlag == 1
+    [hei, wid, ~] = size( macSam );
+    rrBioSam = zeros( hei, wid, 3, 'uint8' );
+    [rh, rw, ~] = size( rBioSam );
+    rrBioSam((hei-rh+1):end, (wid-rw+1):end, :) = rBioSam;
+else
+    rrBioSam = rBioSam;
+end
+if verbose == 1
+    figure;imshowpair( macSam, rrBioSam );
+    figure;imshowpair( macSam, rMSSam );
+end
+%     figure;imshowpair( rMSSam, rrBioSam );
+figure; imshow( rrBioSam ); hold on; h = imshow( rMSSam );
+% indMap = zeros( size( rMSSam, 1 ), size( rMSSam, 2 ) );
+% for i = 1:size( rMSSam, 1  )
+%     for j = 1:size( rMSSam, 2 )
+%         if rMSSam(i, j, 1) ~= 0 || rMSSam(i, j, 2) ~= 0 || (rMSSam(i, j, 3) ~= 142 )
+%             indMap(i, j) = 1;
+%         end
+%     end
+% end
+% alphaMat = zeros( size( rMSSam, 1 ), size( rMSSam, 2 ) );
+% alphaMat(indMap==1) = alphaVal;
+alphaMat = alphaVal;
+set( h, 'AlphaData', alphaMat );
+fHandle = gcf;
+end
