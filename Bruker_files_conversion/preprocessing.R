@@ -104,7 +104,7 @@ MALDI_IMS_preprocessing <- function( inputFilePath, outputPath ) {
 		p <- detectPeaks(s4, method="MAD", halfWindowSize=20, SNR=2)
 		pData[[i]]=p
 	}
-	pData <- binPeaks( pData, tolerance=0.5 )
+	#pData <- binPeaks( pData, tolerance=0.5 )
 
 	writeLines( 'computing consensus peak at 1%...' );
 	cVec = vector( mode = "numeric", length = length(mass(s[[1]])) )
