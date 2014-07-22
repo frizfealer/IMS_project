@@ -1,8 +1,11 @@
-function [ dataCube, mzAxis ] = preprocess2dataCube( dataFilePath, mzAFilePath, pDataFilePath, outFilePath )
+function [ dataCube, mzAxis ] = preprocess2dataCube( inputFilePath, outFilePath )
 %preprocess2dataCube
-dataMatrix = csvread(dataFilePath);
-mzAxis = csvread(mzAFilePath);
-posInfo = csvread(pDataFilePath);
+%inputFilePath: The folder containing three input files e.g. D:
+%outFilePath: the folder and the file name (.mat) of output file e.g.
+%D:\out.mat
+dataMatrix = csvread([inputFilePath,'\dataMatrix.csv']);
+mzAxis = csvread([inputFilePath,'\mzVec.csv']);
+posInfo = csvread([inputFilePath,'\posMat.csv']);
 whos dataMatrix
 maxXVal = max( posInfo(:, 1) ) + 1;
 maxYVal = max( posInfo(:, 2) ) + 1;
