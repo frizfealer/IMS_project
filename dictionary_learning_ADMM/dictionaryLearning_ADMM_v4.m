@@ -104,6 +104,12 @@ if isfield( param, 'CLUSTER_NAME' )
 else
     CLUSTER_NAME = 'local';
 end
+if isfield( param, 'INIT_D' )
+    INIT_METHOD = param.INIT_D;
+else
+    INIT_METHOD = 'NNMF';
+end
+
 LPAry = zeros( 1, OUTER_IT_NUM+1 );
 
 %rhoCell will consist of MAXIT iteration number of rhoAry
@@ -113,7 +119,7 @@ resRecCell = cell(OUTER_IT_NUM, 1);
 
 %% initialize all variable
 if isempty(initVar)
-    [ outD ] = initD( inY, DTemplate, 'random' );
+    [ outD ] = initD( inY, DTemplate, INIT_METHOD );
     outW = sparse( zeros( mLen, hei*wid ) );
     outW0 = sparse( zeros( hei, wid ) );
 else
