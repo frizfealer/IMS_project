@@ -15,6 +15,7 @@ for i = 1:length(posInfo)
     y = posInfo(i, 2);
     dataCube(:, y, x) = dataMatrix(:, i);
 end
+dataCube = round(dataCube);
 if ~isempty( outFilePath )
     save( outFilePath, 'dataCube', 'mzAxis' );
 end
