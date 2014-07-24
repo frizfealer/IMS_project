@@ -1,4 +1,4 @@
-function [ expRec ] = realExperimentTemplate( dataCubeFilePath, packageFolderPath, IonTableFilePath)
+function [ expRec ] = realExperimentTemplate( dataCubeFilePath, packageFolderPath, IonTableFilePathPos, IonTableFilePathNeg)
 %experimentTemplate The template of experiments on real data
 % dataCubeFilePath = 'dataCubeInfo.mat';
 % packageFolderPath = your package path
@@ -8,7 +8,7 @@ addpath( genpath( packageFolderPath ) );
 
 %% trim data, only consdier m/z>=mzSmall and m/z <=mzLarge
 mzSmall = 500;
-mzLarge = 1500;
+mzLarge = max(mzAxis);
 assert( mzSmall >= min( mzAxis ) );
 assert( mzLarge <= max( mzAxis ) );
 % dataCube, mzAxis is loaded from the *.mat file in dataCubeFilePath
@@ -28,7 +28,7 @@ mzAxis = mzAxis(tsIdx:teIdx);
 [ BlkDS ] = conBLKDS( dataCube );
 
 %% trim data, only consider m/z channel has values larger then the value of  intThreshold accross all the grids
-intThreshold = 500;
+intThreshold = 200;
 ins = dataCube(:,:);
 ins = ins(:, BlkDS.indMap);
 tmp = zeros( size( ins, 1 ), 1 );
@@ -50,7 +50,8 @@ mzAxis = mzAxis(tIdx);
 %% generate DTemplate
 %smallest molecule weight, set to H = 1.007
 %m/z error +/- 0.5
-[ DTemplate, DIonName ] = genDTemplate( mzAxis, IonTableFilePath, 1.007, 0.5 );
+[ pDTemplate, pDIonName, pSpeciesM ] = genDTemplate( mzAxis, IonTableFilePathPos, 1.007, 0.5 );
+[ nDTemplate, nDIonName, nSpeciesM ] = genDTemplate( mzAxis, IonTableFilePathNeg, 1.007, 0.5 );
 save( 'exp1_inputs_env.mat' );
 
 %% running dictionary learning
@@ -68,6 +69,7 @@ param.INNER_IT_RED_FLAG = 0; %whether reduce the ADMM_IT_NUM and UP_D_IT_NUM whe
 param.LATE_UPDATE_FLAG = 1; %whether using late update on dictionary elements
 param.LATE_UPDATE_PERCENT = 0.2; %Under late update scenario, the percentage of dictionary elements used in the whole update process
 param.CLUSTER_NAME = 'local'; %usually this is the default name
+param.INIT_D = 'NNMF'; %the method of dictionary initialization
 
 %% need install the package SLEP and add the package to the path
 % addpath( genpath( 'D:\SLEP_package_4.1\SLEP' ) );
