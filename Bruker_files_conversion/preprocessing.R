@@ -1,5 +1,7 @@
 MALDI_IMS_preprocessing <- function( inputFilePath, outputPath ) {
 #usage:
+#e.g. inputFilePath = "D:\\Users\\YeuChern\\Dropbox\\unc\\CS\\RA\\Project_dictionaryLearning_IMS\\data\\2013_Bmyc_Paeni_Early_LP\\2013 Bmyc Paeni Early LP_nopp.mzML"
+#e.g. outputPath = "D:\\"
 	
 	#need MALDIquant and MALDIquantForeign libraries
 	library("MALDIquant")
