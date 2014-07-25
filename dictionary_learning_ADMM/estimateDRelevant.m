@@ -38,7 +38,7 @@ for i = 1:mLen
     cIdx = find( DTemplate(:,i) ==1 );
     cY = Y(cIdx, :);
     cDEle = outD(cIdx, i);
-    for j = 1:nLen
+    parfor j = 1:nLen
         if indMap(j) == 1
             if ~isempty( find( cY(:,j) ~= 0, 1 ) ) 
 %         [W(1,j), ~, ~]= LeastR(outD(cIdx,i), Y(cIdx, j), 0, opts);
@@ -85,8 +85,10 @@ rRecVec = ones( length(intEleVec), 1 );
 while length(rSet) < eleLimit
     for i = 1:length(intEleVec)
         cPEle = pEleList{i};
-        rSet = unique( [rSet; cPEle(rRecVec(i))] );
-        rRecVec(i) = rRecVec(i) + 1;
+        if rRecVec(i) <= length(cPEle)
+            rSet = unique( [rSet; cPEle(rRecVec(i))] );
+            rRecVec(i) = rRecVec(i) + 1;
+        end
     end
 end
 
