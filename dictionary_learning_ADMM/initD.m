@@ -47,9 +47,14 @@ elseif strcmp( method, 'NNMF' ) == 1
         res = sum(ins, 1);
         [~,idx]= sort( res, 'descend' );
         lowerIdx = find(res(idx)<=0,1) - 1;
-        [w,h]=nnmf( ins(:,idx(1:lowerIdx)), 1 );
-        outD(cSpec, i) = w;
-        outD(:, i) = outD(:, i)./ norm( outD(cSpec, i), 2 );
+        if isempty( lowerIdx )
+            lowerIdx = length(idx);
+        end
+        if lowerIdx ~= 0
+            [w,h]=nnmf( ins(:,idx(1:lowerIdx)), 1 );
+            outD(cSpec, i) = w;
+            outD(:, i) = outD(:, i)./ norm( outD(cSpec, i), 2 );
+        end
     end
 end
 
