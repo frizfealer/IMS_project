@@ -99,10 +99,11 @@ param.LATE_UPDATE_PERCENT = 0.2; %Under late update scenario, the percentage of 
 param.LATE_UPDATE_INTTHRES = 0.8; %Under late update scenario, the percentage of intesity be explained used in the whole update process
 param.CLUSTER_NAME = 'local'; %usually this is the default name
 param.INIT_D = 'NNMF'; %the method of dictionary initialization
-
+save( '100831_113_333_136_26hr_0-1XLB_1_inputs_env.mat', 'param', 'snapPath', 'BlkDS', 'aMatrix', 'lambda', 'theta', 'phi', 'tDataCube', ...
+    'tDTemplate', 'tSpeciesM', 'tDIonName', '-v7.3' );
 %% need install the package SLEP and add the package to the path
 % addpath( genpath( 'D:\SLEP_package_4.1\SLEP' ) );
-[ expRec ] = dictionaryLearning_ADMM_v4( dataCube, [], pDTemplate, [], lambda, theta, phi, aMatrix, BlkDS, [], snapPath, param );
+[ expRec ] = dictionaryLearning_ADMM_v4( tDataCube, [], tDTemplate, [], lambda, theta, phi, aMatrix, BlkDS, [], snapPath, param );
 [ elambda, etheta, ephi ] = estimateHypParam( expRec.outW, expRec.outD, DTemplate, BlkDS );
 [ gridVec ] = genHypParamGrid( [elambda, etheta, ephi], 5 );
 %elambda = 1.9303, etheta = 2.0707, ephi = 4.2295
