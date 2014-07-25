@@ -159,8 +159,10 @@ indMap = BlkDS.indMap;
 if matlabpool('size') == 0
     matlabpool( 'open', CLUSTER_NAME, CLUSTER_NUM );
 end
-
-
+%% managing late update for some dictionary elements
+% validMap = indMap .* aMatrix;
+% yy = inY(:, validMap==1);
+[ rSet ] = estimateDRelevant( inY, outD, DTemplate, indMap, LATE_UPDATE_PERCENT, LATE_UPDATE_INTTHRES  );
 %% main program start
 LPAry(1) = LP_DL_Poiss( aMatrix, inY, outW, outW0, outD, lambda, phi, theta, scaleFactor, logFY );
 fprintf( 'parameters: outer iteration number = %d, ', OUTER_IT_NUM );
@@ -188,11 +190,7 @@ for it = 1:OUTER_IT_NUM
     else
         M_ADMM_IT_NUM = ADMM_IT_NUM;
     end
-    %% managing late update for some dictionary elements
     if LATE_UPDATE_FLAG == 1
-        % validMap = indMap .* aMatrix;
-        % yy = inY(:, validMap==1);
-        [ rSet ] = estimateDRelevant( inY, outD, DTemplate, indMap, LATE_UPDATE_PERCENT, LATE_UPDATE_INTTHRES  );
         if it < floor(OUTER_IT_NUM*0.8)
             relD = outD(:, rSet);
             relW = outW(rSet, :);
@@ -348,10 +346,11 @@ for it = 1:OUTER_IT_NUM
         epsDual = sqrt( size(s0, 1) * size(s0, 2) )*EPS_ABS + maxRel*EPS_REL;
         
         resRecAry(itNumADMM, :) = [rfn2, epsPri, s0n2, epsDual];
-        fprintf( '%d: %g %g %g %g %g %g %g\n',itNumADMM, rfn2, epsPri, s0n2, epsDual, curRhoAry(itNumADMM), norm( full( tmp(:) ) ), norm( full( u1(:) ) ) );
+        tmp = max( abs( relW(:) -  prevWADMM(:) ) );
+        fprintf( '%d: %g %g %g %g %g %g\n',itNumADMM, rfn2, epsPri, s0n2, epsDual, curRhoAry(itNumADMM), tmp );
         if ( rfn2 < epsPri && s0n2 < epsDual ) ||...
                 ( max( abs(rf(:)) ) < 1e-3 && max( abs(s0(:)) ) < 1e-3 ) || ...
-                ( max( abs( relW(:) -  prevWADMM(:) ) ) < 1e-3 )
+                ( tmp < 1e-3 )
             break;
         end
 
@@ -438,20 +437,21 @@ for it = 1:OUTER_IT_NUM
     end
     
     LPAry(it+1) = LP_DL_Poiss( aMatrix, inY, outW, outW0, outD, lambda, phi, theta, scaleFactor, logFY );
+    tmp1 = max( abs( outW(:)-prevW(:) ) );
+    tmp2 = max( abs( outW0(:)-prevW0(:) ) );
+    tmp3 = max( abs( outD(:)-prevD(:) ) );
     if mod(it, SAVE_TEM_PERIOD) == 0
         expRec.outD = outD; expRec.outW = outW; expRec.outW0 = outW0;
         expRec.LPAry = LPAry; expRec.z0 = z0; expRec.z1 = z1; 
         expRec.u0 = u0; expRec.u1 = u1;
         expRec.LPAryADMM = LPAryADMM;
         expRec.theta = theta; expRec.lambda = lambda; expRec.phi = phi;
+        expRec.diffW = tmp1; expRec.diffW0 = tmp2; expRec.diffD = tmp3;
 %         expRec.rhoCell = rhoCell; expRec.resRecCell = resRecCell;
         save( snapFilePath, 'expRec' );
     end
-    tmp1 = max( abs( outW(:)-prevW(:) ) );
-    tmp2 = max( abs( outW0(:)-prevW0(:) ) );
-    tmp3 = max( abs( outD(:)-prevD(:) ) );
     if abs(LPAry(it+1)-LPAry(it)) <= 1e-6 || ...
-        ( max( tmp1, tmp2 ) < 1e-4 &&  tmp3 < 1e-4 )
+        ( max( tmp1, tmp2 ) < 1e-3 &&  tmp3 < 1e-3 )
         break;
     end
 end
@@ -462,6 +462,7 @@ expRec.outD = outD; expRec.outW = outW; expRec.outW0 = outW0;
 expRec.LPAry = LPAry; expRec.z0 = z0; expRec.z1 = z1;
 expRec.LPAryADMM = LPAryADMM;
 expRec.theta = theta; expRec.lambda = lambda; expRec.phi = phi; 
+expRec.diffW = tmp1; expRec.diffW0 = tmp2; expRec.diffD = tmp3;
 %expRec.rhoCell = rhoCell; expRec.resRecCell = resRecCell;
 
 end
