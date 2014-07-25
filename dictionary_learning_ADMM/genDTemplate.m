@@ -92,7 +92,7 @@ for i = 1:length(mMVec)
     end
 end
 
-fprintf( 'Computing redundancy in the DTemplate...\n' );
+fprintf( 'computing redundancy in the DTemplate...\n' );
 %redundent is defined as:
 % A:[1 1 0 0]
 % B:[1 1 1 0]
