@@ -83,6 +83,7 @@ tDataCube = [pCube(:,:);nCube(:,:)];
 SLEN = size( pCube, 1 ) + size( nCube, 1 );
 tDataCube = reshape( tDataCube, SLEN, IHEIGHT, IWIDTH );
 [ BlkDS ] = conBLKDS( tDataCube );
+tMZAxis = [mzAxisVec{1}; mzAxisVec{2}];
 %% running dictionary learning
 lambda = 1e-6; phi = 1e-6; theta = 1e-6;
 snapPath = 'temp.mat';
@@ -92,7 +93,7 @@ param.OUTER_IT_NUM = 30; %number of  outer loop
 param.ADMM_IT_NUM = 100; %number of ADMM loop
 param.UP_D_IT_NUM = 200; %number of updating D loop
 param.HES_FLAG = 0; %whether using real Hessian when updating D
-param.CLUSTER_NUM = 1; %number of cluster uses, usually 12
+param.CLUSTER_NUM = 12; %number of cluster uses, usually 12
 param.SAVE_TEM_PERIOD = 1; %the perioud of iteration to save a temporary experiment result in snapPath
 param.INNER_IT_RED_FLAG = 0; %whether reduce the ADMM_IT_NUM and UP_D_IT_NUM when in early outer loop
 param.LATE_UPDATE_FLAG = 1; %whether using late update on dictionary elements
@@ -100,15 +101,14 @@ param.LATE_UPDATE_PERCENT = 0.2; %Under late update scenario, the percentage of 
 param.LATE_UPDATE_INTTHRES = 0.8; %Under late update scenario, the percentage of intesity be explained used in the whole update process
 param.CLUSTER_NAME = 'local'; %usually this is the default name ,'killDevil1024'
 param.INIT_D = 'NNMF'; %the method of dictionary initialization
-save( '100831_113_333_136_26hr_0-1XLB_1_inputs_env.mat', 'param', 'snapPath', 'BlkDS', 'aMatrix', 'lambda', 'theta', 'phi', 'tDataCube', ...
-    'tDTemplate', 'tSpeciesM', 'tDIonName', '-v7.3' );
 %% need install the package SLEP and add the package to the path
 % addpath( genpath( 'D:\SLEP_package_4.1\SLEP' ) );
 [ expRec ] = dictionaryLearning_ADMM_v4( tDataCube, [], tDTemplate, [], lambda, theta, phi, aMatrix, BlkDS, [], snapPath, param );
-[ elambda, etheta, ephi ] = estimateHypParam( expRec.outW, expRec.outD, DTemplate, BlkDS );
+[ elambda, etheta, ephi ] = estimateHypParam( expRec.outW, expRec.outD, tDTemplate, BlkDS );
 [ gridVec ] = genHypParamGrid( [elambda, etheta, ephi], 5 );
-%elambda = 1.9303, etheta = 2.0707, ephi = 4.2295
-
+%elambda =  3.7486, etheta =  4.8046, ephi =  4.1983
+save( '100831_113_333_136_26hr_0-1XLB_1_inputs_env.mat', 'param', 'snapPath', 'BlkDS', 'aMatrix', 'lambda', 'theta', 'phi', 'tDataCube', 'tMZAxis',...
+    'tDTemplate', 'tSpeciesM', 'tDIonName', 'gridVec',  '-v7.3' );
 
 end
 
