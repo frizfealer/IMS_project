@@ -68,6 +68,7 @@ param.SAVE_TEM_PERIOD = 1; %the perioud of iteration to save a temporary experim
 param.INNER_IT_RED_FLAG = 0; %whether reduce the ADMM_IT_NUM and UP_D_IT_NUM when in early outer loop
 param.LATE_UPDATE_FLAG = 1; %whether using late update on dictionary elements
 param.LATE_UPDATE_PERCENT = 0.2; %Under late update scenario, the percentage of dictionary elements used in the whole update process
+param.LATE_UPDATE_INTTHRES = 0.8; %Under late update scenario, the percentage of intesity be explained used in the whole update process
 param.CLUSTER_NAME = 'local'; %usually this is the default name
 param.INIT_D = 'NNMF'; %the method of dictionary initialization
 
