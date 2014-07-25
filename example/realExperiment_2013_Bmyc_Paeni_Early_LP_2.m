@@ -1,10 +1,10 @@
-function [ output_args ] = realExperiment_2013_Bmyc_Paeni_Early_LP_2(  dataCubeFilePathPos, packageFolderPath, IonTableFilePathPos, gridVec )
+function [ output_args ] = realExperiment_2013_Bmyc_Paeni_Early_LP_2(  posDataCubeFilePath, packageFolderPath, posIonTableFilePath, gridVec )
 %experimentTestingHParamsLimits The template of experiments on real data to
 %test the limits of hyper-parameters
-% dataCubeFilePath = 'dataCubeInfo.mat';
+% posDataCubeFilePath = '2013_Bmyc_Paeni_Early_LP.mat';
 % packageFolderPath = your package path
-% IonTableFilePath='molecule_profile_new_trim.csv';
-load( dataCubeFilePathPos );
+% posIonTableFilePath='molecule_profile_pos.csv';
+load( posDataCubeFilePath );
 for i = 1:length( packageFolderPath )
     addpath( genpath( packageFolderPath{i} ) );
 end
@@ -28,7 +28,7 @@ mzAxis = mzAxis(tsIdx:teIdx);
 [SLEN, IHEIGHT, IWIDTH] = size( dataCube );
 [ BlkDS ] = conBLKDS( dataCube );
 %% trim data, only consider m/z channel has values larger then the value of  intThreshold accross all the grids
-intThreshold = 2s00;
+intThreshold = 200;
 ins = dataCube(:,:);
 ins = ins(:, BlkDS.indMap);
 tmp = zeros( size( ins, 1 ), 1 );
@@ -75,9 +75,7 @@ aMatrix = ones( size( tDataCube, 2 ), size( tDataCube, 3) );
 %% generate DTemplate
 %smallest molecule weight, set to H = 1.007
 %m/z error +/- 0.5
-if ~isempty(IonTableFilePathPos) 
-    [ pDTemplate, pDIonName, pSpeciesM ] = genDTemplate( mzAxis, IonTableFilePathPos, 1.007, 0.5 );
-end
+[ pDTemplate, pDIonName, pSpeciesM ] = genDTemplate( mzAxis, posIonTableFilePath, 1.007, 0.5 );
 %% Dictionary learning parameters setting
 snapPath = 'temp.mat';
 %setting up parameters
@@ -93,15 +91,24 @@ param.LATE_UPDATE_FLAG = 1; %whether using late update on dictionary elements
 param.LATE_UPDATE_PERCENT = 0.2; %Under late update scenario, the percentage of dictionary elements used in the whole update process
 param.CLUSTER_NAME = 'local'; %usually this is the default name
 param.INIT_D = 'NNMF'; %the method of dictionary initialization
+
+save( '2013_Bmyc_Paeni_Early_LP_inputs_env.mat', 'param', 'snapPath', 'BlkDS', 'aMatrix', 'tDataCube', ...
+    'pDTemplate', 'pSpeciesM', 'pDIonName', 'gridVec', '-v7.3' );
+
 %% run on different hyper-parameters limits
+load( '2013_Bmyc_Paeni_Early_LP_inputs_env.mat' );
+param.CLUSTER_NAME = 'killDevil1024'; %usually this is the default name
+param.CLUSTER_NUM = 32; %number of cluster uses, usually 12
 gridLen = length( gridVec.fVec(:) );
-expRecVec = [];
+expRecVec = cell(gridLen, 1);
 for i = 1:gridLen
-    cLambda = gridLen.fVec(i);
-    cTheta = gridLen.sVec(i);
-    cPhi = gridLen.tVec(i);
+    cLambda = gridVec.fVec(i);
+    cTheta = gridVec.sVec(i);
+    cPhi = gridVec.tVec(i);
     [ expRec ] = dictionaryLearning_ADMM_v4( tDataCube, [], pDTemplate, [], cLambda, cTheta, cPhi, aMatrix, BlkDS, [], snapPath, param );
-    expRecVec = [expRecVec expRec];
+    [ BICVal ] = computeBIC( 1, tDataCube(:, :), expRec.outD, expRec.outW, expRec.outW0 );
+    expRec.BICVal = BICVal;
+    expRecVec{i} = expRec;
     save( 'HParams_2013_Bmyc_Paeni_Early_LP.mat', 'expRecVec', '-v7.3' ) ;
 end
 
