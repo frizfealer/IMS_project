@@ -98,7 +98,7 @@ param.INNER_IT_RED_FLAG = 0; %whether reduce the ADMM_IT_NUM and UP_D_IT_NUM whe
 param.LATE_UPDATE_FLAG = 1; %whether using late update on dictionary elements
 param.LATE_UPDATE_PERCENT = 0.2; %Under late update scenario, the percentage of dictionary elements used in the whole update process
 param.LATE_UPDATE_INTTHRES = 0.8; %Under late update scenario, the percentage of intesity be explained used in the whole update process
-param.CLUSTER_NAME = 'local'; %usually this is the default name
+param.CLUSTER_NAME = 'local'; %usually this is the default name ,'killDevil1024'
 param.INIT_D = 'NNMF'; %the method of dictionary initialization
 save( '100831_113_333_136_26hr_0-1XLB_1_inputs_env.mat', 'param', 'snapPath', 'BlkDS', 'aMatrix', 'lambda', 'theta', 'phi', 'tDataCube', ...
     'tDTemplate', 'tSpeciesM', 'tDIonName', '-v7.3' );
