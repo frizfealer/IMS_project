@@ -347,7 +347,7 @@ for it = 1:OUTER_IT_NUM
         
         resRecAry(itNumADMM, :) = [rfn2, epsPri, s0n2, epsDual];
         tmp = max( abs( relW(:) -  prevWADMM(:) ) );
-        fprintf( '%d: %g %g %g %g %g %g\n',itNumADMM, rfn2, epsPri, s0n2, epsDual, curRhoAry(itNumADMM), tmp );
+        fprintf( '%d: %g %g %g %g %g %g\n',itNumADMM, rfn2, epsPri, s0n2, epsDual, curRhoAry(itNumADMM), full(tmp) );
         if ( rfn2 < epsPri && s0n2 < epsDual ) ||...
                 ( max( abs(rf(:)) ) < 1e-3 && max( abs(s0(:)) ) < 1e-3 ) || ...
                 ( tmp < 1e-3 )
