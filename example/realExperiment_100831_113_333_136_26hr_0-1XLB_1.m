@@ -82,6 +82,7 @@ nCube = dataCubeVec{2};
 tDataCube = [pCube(:,:);nCube(:,:)];
 SLEN = size( pCube, 1 ) + size( nCube, 1 );
 tDataCube = reshape( tDataCube, SLEN, IHEIGHT, IWIDTH );
+[ BlkDS ] = conBLKDS( tDataCube );
 %% running dictionary learning
 lambda = 1e-6; phi = 1e-6; theta = 1e-6;
 snapPath = 'temp.mat';
@@ -91,7 +92,7 @@ param.OUTER_IT_NUM = 30; %number of  outer loop
 param.ADMM_IT_NUM = 100; %number of ADMM loop
 param.UP_D_IT_NUM = 200; %number of updating D loop
 param.HES_FLAG = 0; %whether using real Hessian when updating D
-param.CLUSTER_NUM = 12; %number of cluster uses, usually 12
+param.CLUSTER_NUM = 1; %number of cluster uses, usually 12
 param.SAVE_TEM_PERIOD = 1; %the perioud of iteration to save a temporary experiment result in snapPath
 param.INNER_IT_RED_FLAG = 0; %whether reduce the ADMM_IT_NUM and UP_D_IT_NUM when in early outer loop
 param.LATE_UPDATE_FLAG = 1; %whether using late update on dictionary elements
