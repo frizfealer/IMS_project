@@ -40,11 +40,11 @@ dataCube = dataCube(tIdx, :, :);
 mzAxis = mzAxis(tIdx);
 
 %% generate aMatrix, alpha matrix for leave-out testing.
-%if aMatrix is set to ones e.g. aMatrix = ons( IHEIGHT, IWIDTH );,
+%if aMatrix is set to ones e.g. aMatrix = ones( IHEIGHT, IWIDTH );,
 %then there is no leave-out
 %aMatrix: a logical matrix, as the same size of the grid, with 1 means the
 %grids used in training process, and 0 means in testing process
-[ aMatrix ] = genAMatrix( BlkDS, 0.2, 'byRow');
+[ aMatrix ] = genAMatrix( BlkDS, 0, 'byRow');
 
 
 %% generate DTemplate
@@ -59,12 +59,12 @@ lambda = 1e-6; phi = 1e-6; theta = 1e-6;
 snapPath = 'temp.mat';
 %setting up parameters
 param = [];
-param.OUTER_IT_NUM = 2; %number of  outer loop
-param.ADMM_IT_NUM = 1; %number of ADMM loop
-param.UP_D_IT_NUM = 1; %number of updating D loop
+param.OUTER_IT_NUM = 100; %number of  outer loop
+param.ADMM_IT_NUM = 100; %number of ADMM loop
+param.UP_D_IT_NUM = 200; %number of updating D loop
 param.HES_FLAG = 0; %whether using real Hessian when updating D
-param.CLUSTER_NUM = 1; %number of cluster uses, usually 12
-param.SAVE_TEM_PERIOD = 1; %the perioud of iteration to save a temporary experiment result in snapPath
+param.CLUSTER_NUM = 12; %number of cluster uses, usually 12
+param.SAVE_TEM_PERIOD = 5; %the perioud of iteration to save a temporary experiment result in snapPath
 param.INNER_IT_RED_FLAG = 0; %whether reduce the ADMM_IT_NUM and UP_D_IT_NUM when in early outer loop
 param.LATE_UPDATE_FLAG = 1; %whether using late update on dictionary elements
 param.LATE_UPDATE_PERCENT = 0.2; %Under late update scenario, the percentage of dictionary elements used in the whole update process
@@ -74,7 +74,7 @@ param.INIT_D = 'NNMF'; %the method of dictionary initialization
 
 %% need install the package SLEP and add the package to the path
 % addpath( genpath( 'D:\SLEP_package_4.1\SLEP' ) );
-[ expRec ] = dictionaryLearning_ADMM_v4( dataCube, [], DTemplate, [], lambda, theta, phi, aMatrix, BlkDS, [], snapPath, param );
+[ expRec ] = dictionaryLearning_ADMM_v4( dataCube, [], pDTemplate, [], lambda, theta, phi, aMatrix, BlkDS, [], snapPath, param );
 [ elambda, etheta, ephi ] = estimateHypParam( expRec.outW, expRec.outD, DTemplate, BlkDS );
 [ expRec ] = dictionaryLearning_ADMM_v4( dataCube, [], DTemplate, [], elambda, etheta, ephi, aMatrix, BlkDS, [], snapPath, param );
 % expRec is a datastructure containing
