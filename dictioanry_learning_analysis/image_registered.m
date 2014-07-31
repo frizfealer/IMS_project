@@ -1,4 +1,4 @@
-function [fHandle, rrBioSam, rMSSam, macSam ] = image_registered( bioFilePath, macFilePath, MSFilePath, requireInfoPath, shiftFlag, alphaVal, verbose )
+function [fHandle, mapBioSam, MMapMSSam, macSam ] = image_registered( bioFilePath, macFilePath, MSFilePath, requireInfoPath, alphaVal, verbose )
 % bioFilePath='registration_example\DSC01573.jpg';
 % macFilePath='registration_example\DSC00000.jpg';
 % MSFilePath='registration_example\example.jpg';
@@ -10,39 +10,19 @@ function [fHandle, rrBioSam, rMSSam, macSam ] = image_registered( bioFilePath, m
 bioSam = imread( bioFilePath );
 MSSam = imread( MSFilePath );
 macSam = imread( macFilePath );
-if isempty( requireInfoPath )
-    cpselect( bioSam, macSam );
-    cpselect( MSSam, macSam );
-%     save( 'registeredPnt.mat', 'input_points', 'base_points','input_points2', 'base_points2');
-    mytForm = fitgeotrans( input_points, base_points, 'projective' );
-    mytForm2 = fitgeotrans( input_points2, base_points2, 'projective' );
-%     save( 'transInfo.mat', 'mytForm', 'mytForm2' );
-    requireInfo.input_points = input_points;
-    requireInfo.base_points = base_points;
-    requireInfo.input_points2 = input_points2;
-    requireInfo.base_points2 = base_points2;
-    requireInfo.mytForm = mytForm;
-    requireInfo.mytForm2 = mytForm2;
-    save( 'registerInfo.mat', 'requireInfo' );
-else
-    load( requireInfoPath );
-    rBioSam = imwarp( bioSam, requireInfo.mytForm );
-    rMSSam = imwarp( MSSam, requireInfo.mytForm2 );
-end
-if shiftFlag == 1
-    [hei, wid, ~] = size( macSam );
-    rrBioSam = zeros( hei, wid, 3, 'uint8' );
-    [rh, rw, ~] = size( rBioSam );
-    rrBioSam((hei-rh+1):end, (wid-rw+1):end, :) = rBioSam;
-else
-    rrBioSam = rBioSam;
-end
+
+load( requireInfoPath );
+mapBioSam = imwarp( bioSam, mytForm2 );
+mapMSSam = imwarp( MSSam, mytForm );
+[hei, wid, ~] = size( mapMSSam );
+MMapMSSam = zeros( hei, wid, 3, 'uint8' );
+MMapMSSam(1:(hei-shiftHEI), 1:(wid-shiftWID), :) = mapMSSam((shiftHEI+1):hei, (shiftWID+1):wid, :);
 if verbose == 1
-    figure;imshowpair( macSam, rrBioSam );
-    figure;imshowpair( macSam, rMSSam );
+    figure;imshowpair( macSam, mapBioSam );
+    figure;imshowpair( macSam, MMapMSSam );
 end
 %     figure;imshowpair( rMSSam, rrBioSam );
-figure; imshow( rrBioSam ); hold on; h = imshow( rMSSam );
+figure('Visible','Off'); imshow( mapBioSam ); hold on; h = imshow( MMapMSSam ); 
 % indMap = zeros( size( rMSSam, 1 ), size( rMSSam, 2 ) );
 % for i = 1:size( rMSSam, 1  )
 %     for j = 1:size( rMSSam, 2 )
@@ -53,7 +33,10 @@ figure; imshow( rrBioSam ); hold on; h = imshow( rMSSam );
 % end
 % alphaMat = zeros( size( rMSSam, 1 ), size( rMSSam, 2 ) );
 % alphaMat(indMap==1) = alphaVal;
-alphaMat = alphaVal;
+alphaMat = zeros( size(MMapMSSam, 1), size(MMapMSSam, 2) );
+%20 is a fixed threshold, depending on the colormap of MS image.
+idx1 = ( MMapMSSam(:,:,1)>=20 | MMapMSSam(:,:,2) >= 20 | MMapMSSam(:,:,3) >= 20 );
+alphaMat(idx1)=alphaVal;
 set( h, 'AlphaData', alphaMat );
 fHandle = gcf;
 end
