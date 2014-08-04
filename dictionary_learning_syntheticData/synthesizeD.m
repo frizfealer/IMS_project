@@ -1,7 +1,15 @@
 function [ gD, uDTemplate ] = synthesizeD( type, params, verbose )
 %synthesizeD synthesize dictionary
-%sparseVal: 0~1, 1 means no sparse, at least used one signal in an element
-
+%type: 'DTemplate'
+%params: DTemplate, 
+%   sparsePrec: the percentage of entries used in each
+%   dictionary element. 
+%   coheMax: the coherence max allowed of each element
+%type: 'random'
+%params: SLEN, MLEN
+%   sparsePrec: the percentage of entries in all entries. e.g. SLEN*MLEN
+%   coheMax: the coherence max allowed of each element
+    
 if strcmp( type, 'DTemplate' )
     assert( isfield( params, 'DTemplate' ) );
     assert( isfield( params, 'sparsePrec' ) );
