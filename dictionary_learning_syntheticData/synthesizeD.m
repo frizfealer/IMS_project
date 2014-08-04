@@ -110,7 +110,7 @@ elseif strcmp( type, 'random' ) == 1
     uDTemplate(usedEnt) = 1;
     for i = 1:MLEN
         if norm( uDTemplate(:, i) )== 0
-            uDTemplate( randi(MLEN), i ) = 1;
+            uDTemplate( randi(SLEN), i ) = 1;
         end
     end
     numVec = zeros( MLEN, 1 );
