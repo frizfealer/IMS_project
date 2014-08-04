@@ -1,32 +1,52 @@
-function [ gW, gW0 ] = synthesizeW( SLEN, MLEN, HEIGHT, WIDTH, type, scale, verbose)
+function [ gW, gW0, usedElement ] = synthesizeW( MLEN, HEIGHT, WIDTH, type, supPerc, sparsePerc, scale, verbose)
 %synthesize_W synthesize W tensor for my experiment
 %for different type of W, scale
+%type: 'random', 'diffusion', 'thresholding'
+%supNum: # dictionary element used in across all grids
+%sparsePerc: the percent of element used in each grid location
+%scale: the scale of weight 
 if isempty( scale )
     scale = 1;
 end
+gW = zeros( MLEN, HEIGHT, WIDTH );
+gW0 = zeros( HEIGHT, WIDTH );
+
+cnt = 1;
 if strcmp( type, 'random' ) == 1
-    spsVal = 1.5;
-    volInt = 2 * scale;
-    gW = volInt*abs( randn( MLEN, HEIGHT, WIDTH ) );
-%     gW = gW .* ( gW >= spsVal*volInt);
+    VOL_VAR = 1;
+    usedElement = sort(randperm( MLEN, MLEN*supPerc ));
+    for i = usedElement
+        WEnt = sort( randperm( HEIGHT*WIDTH, HEIGHT*WIDTH*sparsePerc ) );
+        gW(i, WEnt) = VOL_VAR*abs( randn( length(WEnt), 1 ) ) + scale;
+        if verbose == 1
+            if cnt <=5
+                figure; imagesc( reshape( gW(i,:), HEIGHT, WIDTH ) ); colorbar;
+                cnt = cnt + 1;
+            end
+        end
+    end
 elseif strcmp( type, 'diffusion' ) == 1
     COMMUNITY_NUM = 2;
     com = genCommunityPos( COMMUNITY_NUM, HEIGHT, WIDTH );
-    gW = zeros( MLEN, HEIGHT, WIDTH );
+    usedElement = sort(randperm( MLEN, MLEN*supPerc ));
     %volInt: base intensity, with rand 20 variation
-    for i = 1:MLEN
+    for i = usedElement
         if verbose == 1
             fprintf('%d\n', i);
         end
         for j = 1:COMMUNITY_NUM
-            volInt = 4.2 * scale;
-            target = volInt + 2*randn(1, 1);
+            volInt = 4 * scale;
+            target = volInt + 3*randn(1, 1);
+            if target < 0
+                target = 0;
+            end
             tmp = rand( HEIGHT, WIDTH );
             gW(i, com(j).areaIdx) = target + 3*tmp( com(j).areaIdx );
             gW(gW<0) = 0;
         end
     end
-    for i = 1:MLEN
+    cnt = 1;
+    for i = usedElement
 %         gaussianAry = [25 50];
 %         gNum = randi(2,2);
 %         h = fspecial('gaussian', [gaussianAry(gNum(1)) gaussianAry(gNum(2))], 1);
@@ -43,29 +63,31 @@ elseif strcmp( type, 'diffusion' ) == 1
         end
         gW(i,~tmp) = 0;
         if verbose == 1
-            if i <= 5
+            if cnt <= 5
                 figure; imagesc( reshape( gW(i,:), HEIGHT, WIDTH ) ); colorbar;
+                cnt = cnt + 1;
             end
         end
     end
 elseif strcmp( type, 'thresholding' ) == 1
     COMMUNITY_NUM = 2;
     [com] = genCommunityPos( COMMUNITY_NUM, HEIGHT, WIDTH );
-    gW = zeros( MLEN, HEIGHT, WIDTH );
+    usedElement = sort(randperm( MLEN, MLEN*supPerc ));
     %volInt: base intensity, with rand 20 variation
-    for i = 1:MLEN
+    for i = usedElement
         if verbose == 1
             fprintf('%d\n', i);
         end
         for j = 1:COMMUNITY_NUM
-            volInt = 4.2 * scale;
-            target = volInt + 2*randn(1, 1);
+            volInt = 4 * scale;
+            target = volInt + 3*randn(1, 1);
             tmp = rand( HEIGHT, WIDTH );
             gW(i, com(j).areaIdx) = target + 3*tmp( com(j).areaIdx );
             gW(gW<0) = 0;
         end
     end
-    for i = 1:MLEN
+    cnt = 1;
+    for i = usedElement
 %         gaussianAry = [25 50];
 %         gNum = randi(2,2);
         h = fspecial( 'gaussian' );
@@ -88,14 +110,14 @@ elseif strcmp( type, 'thresholding' ) == 1
         end
         gW(i, ~tmp) = 0;
         if verbose == 1
-            if i <= 5
+            if cnt <= 5
                 figure; imagesc( reshape( gW(i,:), HEIGHT, WIDTH ) ); colorbar;
+                cnt = cnt + 1;
             end
         end
     end
     
 end
-gW0 = ones( HEIGHT, WIDTH ) * 0;
 
 
 end
