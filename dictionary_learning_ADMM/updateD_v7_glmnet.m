@@ -1,28 +1,39 @@
-function [ rD ] = updateD_v7_glmnet( inY, outW, outW0, D_init, DTemplate, aMatrix, phi, itNum )
+function [ uD ] = updateD_v7_glmnet( inY, outW, outW0, D_init, DTemplate, aMatrix, phi, itNum )
 %updateD_v7_glmnet update the whole dictionary using fmincon without ADMM
 %aMatrix, a indicator matrix, with 1 means using in trainning and 0 means
 %using in testing
 %phi, the sparsity weighting parameter
+%Error occurred when updating with user-defined lambda sequence,
+%deprecated.
 %% setting glmnet parameters
 options = glmnetSet;
-options.lambda=[phi 1e-8];
-options.cl = [1e-8, inf];
+options.nlambda=1;
+options.lambda=[phi];
+options.cl = [0; inf];
 options.alpha = 1;
 options.maxit = 1e5;
-options.intr = false;
+options.intr = true;
+options.standardize = false;
 %% setting input data
 [sLen, mLen] = size(D_init);
 Y = inY(:, :);
 Y = Y(:, aMatrix == 1);
 W = outW(:, :);
 W = W(:,  aMatrix == 1 );
+ins = zeros( mLen, 1 );
+for i = 1:mLen
+    ins(i) = max( W(i, :) );
+end
+mIdx = find( ins>1e-3 );
+rMLen = length(mIdx);
+W = W(mIdx, :);
 nLen = size( W, 2 );
 outW0 = outW0(aMatrix==1);
-rD = D_init;
-prevD = D_init;
-preY = D*W + repmat( outW0(:)', sLen, 1 );
-threshold = 1e-6;
-resY = Y - preY;
+rD = D_init(:, mIdx);
+uD = D_init;
+prevD = rD;
+preY = rD*W + repmat( outW0(:)', sLen, 1 );
+threshold = 1e-4;
 
 %sLen collections
 % sLenCol = [];
@@ -32,45 +43,64 @@ resY = Y - preY;
 % end
 % sLenCol = unique( sLenCol );
 %construct W collection
-WCol = cell( mLen, 1 );
-for i = 1:mLen
-    curW = W(i,:)';
+WCol = cell( rMLen, 1 );
+for i = 1:rMLen
+    curW = W(i,:);
     nonZPos = find(DTemplate(:,i)~=0);
     curSLen = length( nonZPos );
+    curWVec = repmat( curW, curSLen, 1 );
+    sVec = curWVec(:);
     iSize = curSLen*nLen;
     jSize = curSLen;
-    jCoord = ones( ySize, 1 );
-    iCoord = 1:ySize;
-    sVec = zeros( iSize, 1 );
-    for j = 1:nLen
-        sVec( ((j-1)*curSLen+1):(j*curSLen) ) = repmat( curW(j), curSLen, 1 );
-    end
+    jCoord = (1:curSLen)';
+    jCoord = repmat( jCoord, nLen, 1 );
+    jCoord = jCoord(:);
+    iCoord = 1:iSize;
     WCol{i} = sparse(iCoord, jCoord, sVec, iSize, jSize, iSize );
 end
 %construct w index
-WIdx = cell( mLen, 1 );
-for i = 1:mLen
+WIdx = cell( rMLen, 1 );
+for i = 1:rMLen
     WIdx{i} = W(i,:);
 end
 
 while 1
     tic
-    for i = 1:mLen
+    for i = 1:rMLen
+%         fprintf('%d\n', i );
 %         curW = W(i, :);
         nonZPos = find(DTemplate(:,i)~=0);
-        curW = WCol{i};
         curD = rD(nonZPos, i);
-        cResY = resY(nonZPos, :);
-        cResY = cResY + WIdx{i}*curD;
-        curY = inY(nonZPos,:);
-        curY = curY(:);
-        options.offset = log(cResY(:));
-        fit = glmnet( curW, curY, 'poisson', options);
-        tmp = fit.beta;
-        tmp = tmp / max( norm(tmp), 1 );
-        rD(nonZPos, i) = tmp;
-        cResY = cResY - WIdx{i}*rD;
-        resY(nonZPos, :) = cResY;
+        resPreY = preY(nonZPos, :) - curD*WIdx{i};
+        tmpBeta = zeros(length(nonZPos), 1);
+        for j = 1:length(nonZPos)
+            curW = W(i,:)';
+            curY = Y(nonZPos(j), :);
+            curY = curY(:);
+            tmp = resPreY(j, :); 
+            options.offset = tmp(:); 
+            fit = glmnet( curW, curY, 'poisson', options);
+            %max(curY'-tmp)
+             tmpBeta(j) = fit.beta(end);
+%             [B] = lassoglm(curW, curY, 'poisson', 'Lambda', phi, 'Offset', tmp, 'Standardize', false);
+            tmpBeta(j) = fit.beta(1);
+        end
+%         B = max( B, 0 );
+        tmpBeta = tmpBeta / max( norm(tmpBeta), 1 );
+        rD(nonZPos, i) = tmpBeta;
+        preY(nonZPos, :) = resPreY + rD(nonZPos, i)*WIdx{i};
+%         curW = WCol{i};
+%         curD = rD(nonZPos, i);
+%         resPreY = preY(nonZPos, :) - curD*WIdx{i};
+%         curY = inY(nonZPos,:);
+%         curY = curY(:);
+%         options.offset = resPreY(:);
+%         fit = glmnet( curW, curY, 'poisson', options);
+% %             [B,FitInfo] = lassoglm( curW, curY, 'poisson', 'Standardize', false, 'Lambda', phi, 'Offset', cResY(:) ); 
+%         B = fit.beta(:,1);
+%         B = B / max( norm(B), 1 );
+%         rD(nonZPos, i) = B;
+%         preY(nonZPos, :) = resPreY + rD(nonZPos, i)*WIdx{i};
     end
     toc
     fprintf( '%g %g\n', max( abs( rD(:) - prevD(:) ) ), threshold);
@@ -79,6 +109,7 @@ while 1
     end
     prevD = rD;
 end
+uD(:, mIdx) = rD;
 end
 function [ val, grad ] = D_termFunc( inY, curD, curW, staticTerm, nonZPos, nonZPosY, nonZPosX, phi )
 D = sparse( nonZPosY, nonZPosX, curD, size(inY, 1), size(curW, 1) );
