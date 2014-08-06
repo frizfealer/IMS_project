@@ -55,24 +55,24 @@ if ~isfield( WOptions, 'scale' )
 else
     scale = WOptions.scale;
 end
-if ~isfield( WOptions, 'supPerc' )
-    supPerc = 0.2;
+if ~isfield( WOptions, 'supPrec' )
+    supPrec = 0.2;
 else
-    supPerc = WOptions.supPerc;
+    supPrec = WOptions.supPrec;
 end
-if ~isfield( WOptions, 'sparsePerc' )
+if ~isfield( WOptions, 'sparsePrec' )
     if strcmp( type, 'random' ) == 0
-        sparsePerc = 1;
+        sparsePrec = 1;
     else
-        sparsePerc = 0.2;
+        sparsePrec = 0.2;
     end
 else
-    sparsePerc = WOptions.sparsePerc;
+    sparsePrec = WOptions.sparsePrec;
 end
 
 %% Generate w
 fprintf( 'Synthesize W...\n' );
-[ gW, gW0, usedElement ] = synthesizeW( MLEN, HEIGHT, WIDTH, type, supPerc, sparsePerc, scale, verbose);
+[ gW, gW0, usedElement ] = synthesizeW( MLEN, HEIGHT, WIDTH, type, supPrec, sparsePrec, scale, verbose);
 
 
 %% Generate Y
