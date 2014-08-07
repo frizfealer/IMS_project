@@ -7,7 +7,7 @@ function [ uD ] = updateD_v7_glmnet( inY, outW, outW0, D_init, DTemplate, aMatri
 %deprecated.
 %% setting glmnet parameters
 options = glmnetSet;
-options.nlambda=1;
+options.nlambda=5;
 options.lambda=[phi];
 options.cl = [0; inf];
 options.alpha = 1;
@@ -73,34 +73,34 @@ while 1
         curD = rD(nonZPos, i);
         resPreY = preY(nonZPos, :) - curD*WIdx{i};
         tmpBeta = zeros(length(nonZPos), 1);
-        for j = 1:length(nonZPos)
-            curW = W(i,:)';
-            curY = Y(nonZPos(j), :);
-            curY = curY(:);
-            tmp = resPreY(j, :); 
-            options.offset = tmp(:); 
-            fit = glmnet( curW, curY, 'poisson', options);
-            %max(curY'-tmp)
-             tmpBeta(j) = fit.beta(end);
-%             [B] = lassoglm(curW, curY, 'poisson', 'Lambda', phi, 'Offset', tmp, 'Standardize', false);
-            tmpBeta(j) = fit.beta(1);
-        end
+%         for j = 1:length(nonZPos)
+%             curW = W(i,:)';
+%             curY = Y(nonZPos(j), :);
+%             curY = curY(:);
+%             tmp = resPreY(j, :); 
+%             options.offset = tmp(:); 
+%             fit = glmnet( curW, curY, 'poisson', options);
+%             %max(curY'-tmp)
+%              tmpBeta(j) = fit.beta(end);
+% %             [B] = lassoglm(curW, curY, 'poisson', 'Lambda', phi, 'Offset', tmp, 'Standardize', false);
+%             tmpBeta(j) = fit.beta(1);
+%         end
 %         B = max( B, 0 );
-        tmpBeta = tmpBeta / max( norm(tmpBeta), 1 );
-        rD(nonZPos, i) = tmpBeta;
-        preY(nonZPos, :) = resPreY + rD(nonZPos, i)*WIdx{i};
-%         curW = WCol{i};
-%         curD = rD(nonZPos, i);
-%         resPreY = preY(nonZPos, :) - curD*WIdx{i};
-%         curY = inY(nonZPos,:);
-%         curY = curY(:);
-%         options.offset = resPreY(:);
-%         fit = glmnet( curW, curY, 'poisson', options);
-% %             [B,FitInfo] = lassoglm( curW, curY, 'poisson', 'Standardize', false, 'Lambda', phi, 'Offset', cResY(:) ); 
-%         B = fit.beta(:,1);
-%         B = B / max( norm(B), 1 );
-%         rD(nonZPos, i) = B;
+%         tmpBeta = tmpBeta / max( norm(tmpBeta), 1 );
+%         rD(nonZPos, i) = tmpBeta;
 %         preY(nonZPos, :) = resPreY + rD(nonZPos, i)*WIdx{i};
+        curW = WCol{i};
+        curD = rD(nonZPos, i);
+        resPreY = preY(nonZPos, :) - curD*WIdx{i};
+        curY = Y(nonZPos,:);
+        curY = curY(:);
+        options.offset = resPreY(:);
+        fit = glmnet( curW, curY, 'poisson', options);
+% %             [B,FitInfo] = lassoglm( curW, curY, 'poisson', 'Standardize', false, 'Lambda', phi, 'Offset', cResY(:) ); 
+        B = fit.beta(:,1);
+        B = B / max( norm(B), 1 );
+        rD(nonZPos, i) = B;
+        preY(nonZPos, :) = resPreY + rD(nonZPos, i)*WIdx{i};
     end
     toc
     fprintf( '%g %g\n', max( abs( rD(:) - prevD(:) ) ), threshold);
