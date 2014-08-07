@@ -2,7 +2,7 @@ function [ uD ] = updateD_v3( inY, outW, outW0, D_init, DTemplate, aMatrix, phi 
 %updateD_v3 update one dictionary element at a time using fminunc or (minFunc) without ADMM
 % aMatrix: the matrix with the same size of samples, indicating which
 % samples to be used in fitting D (value = 1) and which are not (value = 0)
-
+%deprecated, not applicable to L1-penalty
 [sLen, mLen] = size(D_init);
 [nLen] = size(outW, 2);
 
@@ -102,6 +102,7 @@ function [ val, grad, hMat] = D_termFunc( inY, curD, curW, resPreY, phi, curWsq 
 %curD: [s(non-zero-entry) 1]
 %curW: [1 a*b]
 %resPreY: [s(non-zero-entry) a*b]
+curD = max( 0, curD );
 preY = resPreY + curD*curW;
 ePreY = exp( preY );
 val = -inY.*preY + ePreY;
