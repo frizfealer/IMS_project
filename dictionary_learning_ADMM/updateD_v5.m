@@ -17,7 +17,7 @@ options.TolCon = 1e-16;
 options.Algorithm='interior-point';
 options.Display='iter';
 % options.AlwaysHonorConstraints = 'none';
-options.UseParallel=false;
+options.UseParallel='never';
 options.GradObj='on';
 if HesOpt == 1
     options.Hessian = 'user-supplied';
