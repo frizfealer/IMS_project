@@ -1,4 +1,4 @@
-function [ rD ] = updateD_v8_ipopt( inY, outW, outW0, D_init, DTemplate, aMatrix, HesOpt, phi, scaleFac, itNum )
+function [ finalD ] = updateD_v8_ipopt( inY, outW, outW0, D_init, DTemplate, aMatrix, HesOpt, phi, scaleFac, itNum )
 %updateD_v8 update the whole dictionary using fmincon without ADMM
 %aMatrix, a indicator matrix, with 1 means using in trainning and 0 means
 %using in testing
@@ -17,10 +17,11 @@ ins = zeros( mLen, 1 );
 for i = 1:mLen
     ins(i) = max( W(i, :) );
 end
-rMLen = find( ins > 1e-3 );
-W = W( rMLen, : );
-rD = full( D_init( :, rMLen ) );
-DTemplate = DTemplate(:, rMLen );
+rMIdx = find( ins > 1e-3 );
+rMLen = length( rMIdx );
+W = W( rMIdx, : );
+rD = full( D_init( :, rMIdx ) );
+DTemplate = DTemplate(:, rMIdx );
 nonZPos = find( DTemplate == 1 );
 [ nonZPosY, nonZPosX ] = find( DTemplate == 1 );
 
@@ -30,15 +31,15 @@ startD = rD(nonZPos);
 % The constraint functions are bounded from below by zero.
 options.lb = zeros(length(nonZPos),1);
 options.ub = ones(length(nonZPos),1);
-options.cl = -Inf(length(rMLen),1);
-options.cu = ones(length(rMLen),1);
+options.cl = -Inf(rMLen,1);
+options.cu = ones(rMLen,1);
 % Set up the auxiliary data.
 
 % Set the IPOPT options.
 options.ipopt.print_level = 5;
 options.ipopt.jac_d_constant   = 'yes';
 options.ipopt.hessian_constant = 'yes';
-  options.ipopt.mu_strategy      = 'adaptive';
+options.ipopt.mu_strategy      = 'adaptive';
 options.ipopt.max_iter         = itNum;
 options.ipopt.tol              = 1e-8;
 options.ipopt.hessian_approximation = 'limited-memory';
@@ -58,7 +59,7 @@ funcs.jacobianstructure = @jacobianstructure;
 
 %% generating metadata for nonZeroPosition
 if HesOpt == 1
-    fprintf( 'Generating metaData of non-zero positions in D...\n' );
+    fprintf( 'No computing Hessian of D, this options is currently under construction...\n' );
 end
 %generate nonZPos (one-dimension indicator), map nonzero element -> element
 %in the dictionary. nonZPosY (two-dimension indicator, y-axis), map nonzero
@@ -66,7 +67,7 @@ end
 %nonZPosX (two-dimension indicator, x-axis) map nonzero
 %element -> element's X position in the dictionary
 %nonZPos = find(DTemplate == 1 );
-Wsq = W.^2;
+% Wsq = W.^2;
 % wsqMat = {};
 % for i = 1:size(DTemplate, 1)
 %     fprintf('%d\n', i);
@@ -82,81 +83,86 @@ Wsq = W.^2;
 %         end
 %     end
 % end
-nonZNum = 0;
-for i = 1:size(DTemplate, 1)
-    curX = find( DTemplate(i,:)~=0 );
-    nonZNum = nonZNum + length( curX );
-    for j = 1:length(curX)-1
-        for k = (j+1):length(curX)
-            nonZNum = nonZNum + 1;
-        end
-    end
-end
+% nonZNum = 0;
+% for i = 1:size(DTemplate, 1)
+%     curX = find( DTemplate(i,:)~=0 );
+%     nonZNum = nonZNum + length( curX );
+%     for j = 1:length(curX)-1
+%         for k = (j+1):length(curX)
+%             nonZNum = nonZNum + 1;
+%         end
+%     end
+% end
 
 %gennerate nonZYGrp, a mapping from y-axis to # variables
 %e.g. nonZYGrp{1} = {2, 5} means in y-axis = 1, there are two variables,
 %variables 2 and 5
-[sNonZPosY, idx] = sort( nonZPosY );
-PosGrp = zeros( length( unique( nonZPosY ) ), 2 );
-cnt = 1;
-for i = 1:size( sNonZPosY )
-    target = sNonZPosY(i);
-    for j = i+1:size( sNonZPosY )
-        if sNonZPosY(j) ~= target
-            break;
-        end
-    end
-    PosGrp(cnt, :) = [i, j-1];
-    cnt = cnt + 1;
-end
-nonZYGrp = [];
-cnt = 1;
-for i = 1:size( PosGrp, 1 )
-    if PosGrp(i, 1) ~= PosGrp(i, 2)
-        curGrp = idx(PosGrp(i, 1):PosGrp(i, 2));
-        nonZYGrp{cnt} = curGrp;
-        cnt = cnt + 1;
-    end
-end
+% [sNonZPosY, idx] = sort( nonZPosY );
+% PosGrp = zeros( length( unique( nonZPosY ) ), 2 );
+% cnt = 1;
+% for i = 1:size( sNonZPosY )
+%     target = sNonZPosY(i);
+%     for j = i+1:size( sNonZPosY )
+%         if sNonZPosY(j) ~= target
+%             break;
+%         end
+%     end
+%     PosGrp(cnt, :) = [i, j-1];
+%     cnt = cnt + 1;
+% end
+% nonZYGrp = [];
+% cnt = 1;
+% for i = 1:size( PosGrp, 1 )
+%     if PosGrp(i, 1) ~= PosGrp(i, 2)
+%         curGrp = idx(PosGrp(i, 1):PosGrp(i, 2));
+%         nonZYGrp{cnt} = curGrp;
+%         cnt = cnt + 1;
+%     end
+% end
 %generating nonZGrpInfo, nonZLen, for adding up need-to-update variable
 %nonZGrpInfo, a reverse map. Mapping from non-zero position to its
 %dictionary element
 %nonZLen, a vector [mLen, 1], with eacn entry records # non-zero variables
 nonZGrpInfo = zeros( length( nonZPos ), 1 );
-nonZLen = zeros( mLen, 1 );
+nonZLen = zeros( rMLen, 1 );
 curLoc = 1;
-for i = 1:mLen
+for i = 1:rMLen
     len = length( find( DTemplate(:, i ) == 1 ) );
     nonZLen(i) = len;
     nonZGrpInfo(curLoc:(curLoc+len-1)) = i;
     curLoc = curLoc + len;
 end
 Wsq = W.^2;  
-jacobStruct = zeros( length(rMLen), length( nonZPos ) );
-for i = 1:length(rMLen)
+jacobStruct = zeros(rMLen, length( nonZPos ) );
+for i = 1:rMLen
     target =  nonZPosX==i ;
     jacobStruct(i, target) = 1;
 end
 jacobStruct = sparse( jacobStruct );
 
-HesLen = length( nonZPos );
-HessianStruct = zeros( HesLen, HesLen );
-for i = 1:HesLen
-    HessianStruct(i, i)=1;
-end
-for i = 1:length( nonZYGrp )
-    curGrp = nonZYGrp{i};
-    for j = 1:length(curGrp)-1
-        for z = j+1:length(curGrp)
-            HessianStruct(curGrp(j),  curGrp(z)) = 1;
-        end
-    end
-end
+% HesLen = length( nonZPos );
+% HessianStruct = zeros( HesLen, HesLen );
+% for i = 1:HesLen
+%     HessianStruct(i, i)=1;
+% end
+% for i = 1:length( nonZYGrp )
+%     curGrp = nonZYGrp{i};
+%     for j = 1:length(curGrp)-1
+%         for z = j+1:length(curGrp)
+%             HessianStruct(curGrp(j),  curGrp(z)) = 1;
+%         end
+%     end
+% end
 
-options.auxdata = { Y, W, staticTerm, nonZPos, nonZPosY, nonZPosX, phi, scaleFac, nonZGrpInfo, nonZLen, jacobStruct, nonZYGrp, Wsq, HessianStruct };
-  [x, info] = ipopt_auxdata(startD,funcs,options);
+% options.auxdata = { Y, W, staticTerm, nonZPos, nonZPosY, nonZPosX, phi, scaleFac, nonZGrpInfo, nonZLen, jacobStruct, nonZYGrp, Wsq, HessianStruct };
+options.auxdata = { Y, W, staticTerm, nonZPos, nonZPosY, nonZPosX, phi, scaleFac, nonZGrpInfo, nonZLen, jacobStruct };
+[x, ~] = ipopt_auxdata(startD,funcs,options);
 rD(nonZPos) = x;
-
+for i = 1:rMLen
+    rD(:, i) = rD(:, i) / max( 1, norm( rD(:, i) ) ); 
+end
+finalD = D_init;
+finalD( :, rMIdx ) = rD;
 end
 
 function f = objective (x, auxdata)
@@ -188,14 +194,14 @@ end
 
 function J = jacobian (x, auxdata)  
 nonZLen = auxdata{10};
-J = zeros( length( x ), length( nonZLen ) );
+J = zeros( length( nonZLen ), length( x ) );
 tmp = 2*x;
 curLoc = 1;
 for i = 1:length( nonZLen ) 
-    J(curLoc:(curLoc+nonZLen(i)-1), i) = tmp(curLoc:(curLoc+nonZLen(i)-1));
+    J(i, curLoc:(curLoc+nonZLen(i)-1)) = tmp(curLoc:(curLoc+nonZLen(i)-1));
     curLoc = curLoc + nonZLen(i);
 end
-J=sparse(J');
+J=sparse(J);
 end
 
 function J = jacobianstructure (auxdata)
