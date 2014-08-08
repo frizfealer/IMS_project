@@ -161,7 +161,7 @@ rD(nonZPos) = x;
 for i = 1:rMLen
     rD(:, i) = rD(:, i) / max( 1, norm( rD(:, i) ) ); 
 end
-finalD = D_init;
+finalD = sparse( D_init );
 finalD( :, rMIdx ) = rD;
 end
 
