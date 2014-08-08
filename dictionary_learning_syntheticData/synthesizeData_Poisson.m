@@ -33,6 +33,7 @@ else
 end
 
 %% Generate orthogonal dictionary (random normal dist. generation)
+fprintf( 'Synthesize D...\n' );
 params.sparsePrec = sparsePrec;
 params.coheMax = coheMax;
 if ~isempty(DTemplate)
