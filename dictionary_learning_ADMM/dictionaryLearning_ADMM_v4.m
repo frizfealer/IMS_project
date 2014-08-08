@@ -392,18 +392,12 @@ for it = 1:OUTER_IT_NUM
     end
     validMap = indMap .* aMatrix;
     if isempty( deInfo )
-        if LATE_UPDATE_FLAG == 1 && it < floor(OUTER_IT_NUM*0.8) 
-            [ relD ] = updateD_v5( inY, relW, outW0, relD, DTemplate(:, rSet), validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM );
+        if LATE_UPDATE_FLAG == 1 && it < floor(OUTER_IT_NUM*0.8)
+           %[ relD ] = updateD_v5( inY, relW, outW0, relD, DTemplate(:, rSet), validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM );
+            [ relD ] = updateD_v8_ipopt( inY, relW, outW0, relD, DTemplate(:, rSet), validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM );
         else
-            [ relD ] = updateD_v5( inY, relW, outW0, relD, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM );
-        end
-    else
-        if deInfo.dWFlag ~= 1
-            if LATE_UPDATE_FLAG == 1 && it < floor(OUTER_IT_NUM*0.8)
-                [ relD ] = updateD_v5( inY, relW, outW0, relD, DTemplate(:, rSet), validMap, HES_FLAG, phi, scaleFactor, UP_D_IT_NUM );
-            else
-                [ relD ] = updateD_v5( inY, relW, outW0, relD, DTemplate, validMap, HES_FLAG, phi, scaleFactor, UP_D_IT_NUM );
-            end
+%            [ relD ] = updateD_v5( inY, relW, outW0, relD, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM );
+            [ relD ] = updateD_v8_ipopt( inY, relW, outW0, relD, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM );
         end
     end
 %     
