@@ -111,7 +111,7 @@ save( 'realExperiment_100827_WP13_WP17_1_inputs_env.mat', 'param', 'snapPath', '
 [ elambda, etheta, ephi ] = estimateHypParam( expRec.outW, expRec.outD, tDTemplate, tBlkDS );
 [ gridVec ] = genHypParamGrid( [elambda, etheta, ephi], 5 );
 save( 'realExperiment_100827_WP13_WP17_1_results_env.mat', 'param', 'snapPath', 'tBlkDS', 'aMatrix', 'lambda', 'theta', 'phi', 'tDataCube', 'tMZAxis',...
-    'tDTemplate', 'tSpeciesM', 'tDIonName',  'gridVec', '-v7.3' );
+    'tDTemplate', 'tSpeciesM', 'tDIonName',  'gridVec', 'elambda', 'etheta', 'ephi', 'expRec', '-v7.3' );
 %elambda =  3.7486, etheta =  4.8046, ephi =  4.1983
 
 
