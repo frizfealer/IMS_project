@@ -1,4 +1,4 @@
-function [ expRec, gridVec ] = realExperiment_100827_WP13_WP17( )
+function [ expRec, gridVec ] = realExperiment_100827_WP13_WP17_1( )
 %experimentTemplate The template of experiments on real data
 posDataCubeFilePath = 'D:\IMS_DATA\100827_WP13_WP17\LP\dataCubeInfo.mat';
 negDataCubeFilePath = 'D:\IMS_DATA\100827_WP13_WP17\LN\dataCubeInfo.mat';
@@ -111,7 +111,7 @@ save( 'realExperiment_100827_WP13_WP17_1_inputs_env.mat', 'param', 'snapPath', '
 [ elambda, etheta, ephi ] = estimateHypParam( expRec.outW, expRec.outD, tDTemplate, tBlkDS );
 [ gridVec ] = genHypParamGrid( [elambda, etheta, ephi], 5 );
 save( 'realExperiment_100827_WP13_WP17_1_results_env.mat', 'param', 'snapPath', 'tBlkDS', 'aMatrix', 'lambda', 'theta', 'phi', 'tDataCube', 'tMZAxis',...
-    'tDTemplate', 'tSpeciesM', 'tDIonName',  'gridVec', 'elambda', 'etheta', 'ephi', 'expRec', '-v7.3' );
+    'tDTemplate', 'tSpeciesM', 'tDIonName',  'gridVec', 'elambda', 'etheta', 'ephi', '-v7.3' );
 %elambda =  3.7486, etheta =  4.8046, ephi =  4.1983
 
 
