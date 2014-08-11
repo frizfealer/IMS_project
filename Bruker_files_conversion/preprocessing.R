@@ -17,6 +17,14 @@ MALDI_IMS_preprocessing <- function( iPath, outputPath ) {
 	#checking if there is NA in data
 	writeLines( 'Checking if there is strange values in spectra...' );
 	any(!sapply(s, isRegular))
+	#fixed some data, if they are read as "mass peaks"
+	#e.g., sample 609 is read as "mass peak", sample 1 is read as "mass spectrum"
+	# p = 609;
+	# idx = which(mass(s[[p]]) %in% mass(s[[1]]))
+	# nIntVec = vector( mode = "numeric", length = length(mass(s[[1]])) );
+	# nIntVec[idx] = intensity(s[[p]]);
+	# cMeta = metaData(s[[p]]);
+	# s[[p]] <- createMassSpectrum( mass=mass(s[[1]]), intensity=nIntVec, metaData=cMeta );
 	# for (i in 1:length(s))
 	# {
 		# if ( TRUE %in% is.na(mass(s[[i]])) )
