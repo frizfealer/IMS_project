@@ -115,6 +115,13 @@ if isfield( param, 'INIT_D' )
 else
     INIT_METHOD = 'NNMF';
 end
+if isfield( param, 'D_HIST_PATH' )
+    D_HIST_PATH = param.D_HIST_PATH;
+else
+    D_HIST_PATH = [];
+end
+DHistCell = cell( OUTER_IT_NUM, 1 );
+
 
 LPAry = zeros( 1, OUTER_IT_NUM+1 );
 
@@ -443,6 +450,10 @@ for it = 1:OUTER_IT_NUM
         expRec.diffW = tmp1; expRec.diffW0 = tmp2; expRec.diffD = tmp3;
 %         expRec.rhoCell = rhoCell; expRec.resRecCell = resRecCell;
         save( snapFilePath, 'expRec' );
+    end
+    DHistCell{it} = outD;
+    if ~isempty( D_HIST_PATH )
+        save( D_HIST_PATH, DHistCell );
     end
     if abs(LPAry(it+1)-LPAry(it)) <= 1e-6 || ...
         ( max( tmp1, tmp2 ) < 1e-3 &&  tmp3 < 1e-3 )
