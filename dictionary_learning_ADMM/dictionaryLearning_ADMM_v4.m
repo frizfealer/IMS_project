@@ -453,7 +453,7 @@ for it = 1:OUTER_IT_NUM
     end
     DHistCell{it} = outD;
     if ~isempty( D_HIST_PATH )
-        save( D_HIST_PATH, DHistCell );
+        save( D_HIST_PATH, 'DHistCell' );
     end
     if abs(LPAry(it+1)-LPAry(it)) <= 1e-6 || ...
         ( max( tmp1, tmp2 ) < 1e-3 &&  tmp3 < 1e-3 )
