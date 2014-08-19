@@ -37,8 +37,8 @@ options.cu = ones(rMLen,1);
 
 % Set the IPOPT options.
 options.ipopt.print_level = 5;
-options.ipopt.jac_d_constant   = 'yes';
-options.ipopt.hessian_constant = 'yes';
+% options.ipopt.jac_d_constant   = 'yes';
+% options.ipopt.hessian_constant = 'yes';
 options.ipopt.mu_strategy      = 'adaptive';
 options.ipopt.max_iter         = itNum;
 options.ipopt.tol              = 1e-8;
