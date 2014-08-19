@@ -2,7 +2,7 @@ MALDI_IMS_preprocessing <- function( iPath, outputPath ) {
 #usage:
 #e.g. inputFilePath = "D:\\Users\\YeuChern\\Dropbox\\unc\\CS\\RA\\Project_dictionaryLearning_IMS\\data\\2013_Bmyc_Paeni_Early_LP\\2013 Bmyc Paeni Early LP_nopp.mzML"
 #e.g. outputPath = "D:\\"
-	
+	inFileName = basename( iPath );
 	#need MALDIquant and MALDIquantForeign libraries
 	library("MALDIquant")
 	library("MALDIquantForeign")
@@ -14,6 +14,25 @@ MALDI_IMS_preprocessing <- function( iPath, outputPath ) {
 	#check if there is any empty spectrum in the list
 	writeLines( 'Checking if there is empty spectrum...' );
 	any(sapply(s, isEmpty))
+	writeLines( 'Correcting if all data points are in the mass spectrum class...' );
+	ins = vector( mode = "numeric", length = length(s) );
+	for (i in 1:length(s))
+	{
+		ins[i] = isMassSpectrum(s[[i]]);
+	}
+	tIdx = which( ins == 1, 1)[1];
+	for (i in 1:length(s))
+	{
+		if( ins[i] == 0 )
+		{
+			idx = which(mass(s[[i]]) %in% mass(s[[tIdx]]))
+			nIntVec = vector( mode = "numeric", length = length(mass(s[[tIdx]])) );
+			nIntVec[idx] = intensity(s[[i]]);
+			cMeta = metaData(s[[i]]);
+			s[[i]] <- createMassSpectrum( mass=mass(s[[tIdx]]), intensity=nIntVec, metaData=cMeta );
+		}
+	}
+	isMassSpectrumList(s)
 	#checking if there is NA in data
 	writeLines( 'Checking if there is strange values in spectra...' );
 	any(!sapply(s, isRegular))
@@ -181,8 +200,10 @@ MALDI_IMS_preprocessing <- function( iPath, outputPath ) {
 		mDataMatrix[,i]=temp
 	}
 
-	write.table(mDataMatrix, paste( outputPath, "dataMatrix.csv", sep="" ), row.names=FALSE, col.names=FALSE, sep=",")
-	write.table(mPMZ, paste( outputPath, "mzVec.csv", sep="" ), row.names=FALSE, col.names=FALSE, sep=",")
+	oFileName = paste( inFileName, "_data.csv", sep="" );
+	write.table(mDataMatrix, paste( outputPath, oFileName, sep="" ), row.names=FALSE, col.names=FALSE, sep=",")
+	oFileName = paste( inFileName, "_mz.csv", sep="" );
+	write.table(mPMZ, paste( outputPath, oFileName, sep="" ), row.names=FALSE, col.names=FALSE, sep=",")
 
 	#get position information
 	posMat = matrix( 0, length(s), 2 );
@@ -195,5 +216,6 @@ MALDI_IMS_preprocessing <- function( iPath, outputPath ) {
 		posMat[i,1]= xVal;
 		posMat[i, 2]=yVal;
 	}
-	write.table(posMat, paste( outputPath, "posMat.csv", sep="" ), row.names=FALSE, col.names=FALSE, sep=",")
+	oFileName = paste( inFileName, "_pos.csv", sep="" );
+	write.table(posMat, paste( outputPath, oFileName, sep="" ), row.names=FALSE, col.names=FALSE, sep=",")
 }
