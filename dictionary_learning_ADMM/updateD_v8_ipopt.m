@@ -158,9 +158,9 @@ jacobStruct = sparse( jacobStruct );
 options.auxdata = { Y, W, staticTerm, nonZPos, nonZPosY, nonZPosX, phi, scaleFac, nonZGrpInfo, nonZLen, jacobStruct };
 [x, ~] = ipopt_auxdata(startD,funcs,options);
 rD(nonZPos) = x;
-for i = 1:rMLen
-    rD(:, i) = rD(:, i) / max( 1, norm( rD(:, i) ) ); 
-end
+% for i = 1:rMLen
+%     rD(:, i) = rD(:, i) / max( 1, norm( rD(:, i) ) ); 
+% end
 finalD = sparse( D_init );
 finalD( :, rMIdx ) = rD;
 end
