@@ -1,23 +1,38 @@
-function [ dataCube, mzAxis ] = preprocess2dataCube( inputFilePath, outFilePath )
+function [ expNames, outFilePath ] = preprocess2dataCube( inputFileDir, outFileDir)
 %preprocess2dataCube
-%inputFilePath: The folder containing three input files e.g. D:
-%outFilePath: the folder and the file name (.mat) of output file e.g.
-%D:\out.mat
-dataMatrix = csvread([inputFilePath,'\dataMatrix.csv']);
-mzAxis = csvread([inputFilePath,'\mzVec.csv']);
-posInfo = csvread([inputFilePath,'\posMat.csv']);
-whos dataMatrix
-maxXVal = max( posInfo(:, 1) ) + 1;
-maxYVal = max( posInfo(:, 2) ) + 1;
-dataCube = zeros( size(dataMatrix, 1), maxYVal, maxXVal );
-for i = 1:length(posInfo)
-    x = posInfo(i, 1);
-    y = posInfo(i, 2);
-    dataCube(:, y, x) = dataMatrix(:, i);
+%inputFileDir: The folder containing the preprocessed files
+%e.g. each experiment containing three files (if experiment a)
+%a_data.csv, a_mz.csv, a_pos.csv
+%outFileDir: the folder to output files, file name will be a_dc.mat
+fNames = dir( inputFileDir );
+expNames = cell( (length(fNames)-2)/3, 1 );
+cnt = 1;
+for i = 3:(length(fNames)-2)
+    res = regexp(fNames(i).name,'(.+)_data.csv','tokens' );
+    if ~isempty( res )
+        expNames{cnt} = res{1}{1};
+        cnt = cnt + 1;
+    end
 end
-dataCube = round(dataCube);
-if ~isempty( outFilePath )
-    save( outFilePath, 'dataCube', 'mzAxis' );
+outFilePath = cell( length(expNames), 1 );
+for z = 1:length( expNames )
+    fprintf( ['processing experiment: ', expNames{z}, '\n'] );
+    fNamePre = expNames{z};
+    dataMatrix = csvread([inputFileDir, '\', fNamePre,'_data.csv']);
+    mzAxis = csvread([inputFileDir, '\', fNamePre,'_mz.csv']);
+    posInfo = csvread([inputFileDir, '\', fNamePre,'_pos.csv']);
+    %whos dataMatrix
+    maxXVal = max( posInfo(:, 1) ) + 1;
+    maxYVal = max( posInfo(:, 2) ) + 1;
+    dataCube = zeros( size(dataMatrix, 1), maxYVal, maxXVal );
+    for i = 1:length(posInfo)
+        x = posInfo(i, 1);
+        y = posInfo(i, 2);
+        dataCube(:, y, x) = dataMatrix(:, i);
+    end
+    dataCube = round(dataCube);
+    outFilePath{z} = [outFileDir, '\', fNamePre, '_dc.mat'];
+    save( outFilePath{z}, 'dataCube', 'mzAxis', '-v7.3' );
 end
 end
 
