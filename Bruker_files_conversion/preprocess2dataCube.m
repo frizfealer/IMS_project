@@ -32,7 +32,7 @@ for z = 1:length( expNames )
     end
     dataCube = round(dataCube);
     outFilePath{z} = [outFileDir, '\', fNamePre, '_dc.mat'];
-    save( outFilePath{z}, 'dataCube', 'mzAxis', '-v7.3' );
+    save( outFilePath{z}, 'dataCube', 'mzAxis',  'posInfo', '-v7.3' );
 end
 end
 
