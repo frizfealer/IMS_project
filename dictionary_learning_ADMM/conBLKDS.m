@@ -13,7 +13,7 @@ bImg = sum( dataCube, 1 );
 [~, HEI, WID] = size( dataCube );
 bImg = reshape( bImg, HEI, WID ); bImg( bImg > 0 ) = 1;
 %bwboundaries, return [y,x]
-[B,L] = bwboundaries( bImg );
+[B,L] = bwboundaries( bImg, 8, 'noholes' );
 
 blkNum = length(B);
 
