@@ -121,7 +121,11 @@ else
     D_HIST_PATH = [];
 end
 DHistCell = cell( OUTER_IT_NUM, 1 );
-
+if isfield( param, 'D_ION_NAME' )
+    D_ION_NAME = param.D_ION_NAME;
+else
+    D_ION_NAME = [];
+end
 
 LPAry = zeros( 1, OUTER_IT_NUM+1 );
 
@@ -132,7 +136,7 @@ resRecCell = cell(OUTER_IT_NUM, 1);
 
 %% initialize all variable
 if isempty(initVar)
-    [ outD ] = initD( inY, DTemplate, INIT_METHOD );
+    [ outD ] = initD( inY, DTemplate, INIT_METHOD, D_ION_NAME );
     outW = sparse( zeros( mLen, hei*wid ) );
     outW0 = sparse( zeros( hei, wid ) );
 else
