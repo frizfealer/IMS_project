@@ -10,7 +10,7 @@ function [ finalD ] = updateD_v8_ipopt( inY, outW, outW0, D_init, DTemplate, aMa
 %% initialize variables
 [sLen, mLen] = size(D_init);
 aIdx = aMatrix(:)==1;
-Y = inY(:, aIdx);
+Y = sparse(inY(:, aIdx));
 W = outW(:, aIdx);
 staticTerm = repmat( outW0(aIdx)', sLen, 1 );
 ins = zeros( mLen, 1 );
@@ -133,6 +133,11 @@ for i = 1:rMLen
     curLoc = curLoc + len;
 end
 Wsq = W.^2;  
+WT = W';
+gRes = zeros( size( rD ) );
+gRes = gRes( nonZPos );
+gPreY = zeros( size(Y) );
+gEPreY = zeros( size(Y) );
 jacobStruct = zeros(rMLen, length( nonZPos ) );
 for i = 1:rMLen
     target =  nonZPosX==i ;
@@ -140,6 +145,12 @@ for i = 1:rMLen
 end
 jacobStruct = sparse( jacobStruct );
 
+nonZIdx = cell( rMLen, 1 );
+for i = 1:rMLen
+    nonZIdx{i} = find( DTemplate(:, i) > 0 );
+end
+YT=Y';
+sTermT = staticTerm';
 % HesLen = length( nonZPos );
 % HessianStruct = zeros( HesLen, HesLen );
 % for i = 1:HesLen
@@ -155,7 +166,7 @@ jacobStruct = sparse( jacobStruct );
 % end
 
 % options.auxdata = { Y, W, staticTerm, nonZPos, nonZPosY, nonZPosX, phi, scaleFac, nonZGrpInfo, nonZLen, jacobStruct, nonZYGrp, Wsq, HessianStruct };
-options.auxdata = { Y, W, staticTerm, nonZPos, nonZPosY, nonZPosX, phi, scaleFac, nonZGrpInfo, nonZLen, jacobStruct };
+options.auxdata = { Y, W, staticTerm, nonZPos, nonZPosY, nonZPosX, phi, scaleFac, nonZGrpInfo, nonZLen, jacobStruct, WT, gRes, nonZIdx, YT, sTermT, gPreY, gEPreY};
 [x, ~] = ipopt_auxdata(startD,funcs,options);
 rD(nonZPos) = x;
 % for i = 1:rMLen
@@ -167,23 +178,32 @@ end
 
 function f = objective (x, auxdata)
 %x is current D
-[Y, W, staticTerm, nonZPosY, nonZPosX, phi, scaleFac] = deal(auxdata{[1 2 3 5 6 7 8]});
-D = sparse( nonZPosY, nonZPosX, x, size(Y, 1), size(W, 1) );
-preY = staticTerm + D * W;
+[Y, W, ~, nonZPosY, nonZPosX, phi, scaleFac , WT, YT, sTermT] = deal(auxdata{[1 2 3 5 6 7 8 12 15 16]});
+% D = sparse( nonZPosY, nonZPosX, x, size(Y, 1), size(W, 1) );
+% gPreY = staticTerm + D * W;
+% gEPreY = exp( gPreY );
+DT = sparse( nonZPosX, nonZPosY, x, size(W, 1), size(Y, 1) );
+preY = sTermT + WT * DT;
 ePreY = exp( preY );
-f = -Y.* preY + ePreY;
-f = sum( sum( f ) ) * scaleFac;
+% f = -Y.* preY + ePreY;
+f = sum( sum( -YT.* preY + ePreY ) ) * scaleFac;
 f = f + phi* sum(x);
 end
 
-function g = gradient (x, auxdata)
-[Y, W, staticTerm, nonZPos, nonZPosY, nonZPosX, phi, scaleFac] = deal(auxdata{1:8});
-D = sparse( nonZPosY, nonZPosX, x, size(Y, 1), size(W, 1) );
-preY = staticTerm + D * W;
+function gRes = gradient (x, auxdata)
+[Y, W, ~, ~, nonZPosY, nonZPosX, phi, scaleFac, nonZLen, WT, gRes, nonZIdx, YT, sTermT] = deal(auxdata{[1:8 10 12 13 14 15 16]});
+DT = sparse( nonZPosX, nonZPosY, x, size(W, 1), size(Y, 1) );
+preY = sTermT + WT * DT;
 ePreY = exp( preY );
-g = ( -Y + ePreY )*W';
-g = g(nonZPos);
-g = g*scaleFac + phi;
+% gRes = (-Y+ePreY)*WT;
+% gRes = gRes(nonZPos);
+curLoc = 1;
+for i = 1:length(nonZIdx)
+    idx = nonZIdx{i};
+    gRes(curLoc:(curLoc+nonZLen(i)-1)) = (-YT(:,idx) + ePreY(:, idx))'*WT(:,i);
+    curLoc = curLoc + nonZLen(i);
+end
+gRes = gRes*scaleFac + phi;
 end
 
 function c = constraints(x, auxdata)
