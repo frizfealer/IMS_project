@@ -1,4 +1,4 @@
-function [ outD ] = initD( dataCube, DTemplate, method )
+function [ outD ] = initD( dataCube, DTemplate, method, DIonName )
 %initD initialize dictioanry
 mLen = size( DTemplate, 2 );
 sLen = size( DTemplate, 1 );
@@ -41,23 +41,32 @@ elseif strcmp( method, 'online-DL' ) == 1
 %     param.gamma1=0.3
 %     D = mexTrainDL( y,param );
 elseif strcmp( method, 'NNMF' ) == 1
-     for i = 1:mLen
-        cSpec =  DTemplate(:, i) ~= 0 ;
-        ins = dataCube(cSpec, :);
-        res = sum(ins, 1);
-        [~,idx]= sort( res, 'descend' );
-        lowerIdx = find(res(idx)<=0,1) - 1;
-        if isempty( lowerIdx )
-            lowerIdx = length(idx);
-        end
-        if lowerIdx ~= 0
-            [w,h]=nnmf( ins(:,idx(1:lowerIdx)), 1 );
-            outD(cSpec, i) = w;
-            outD(:, i) = outD(:, i)./ norm( outD(cSpec, i), 2 );
-        end
+        for i = 1:mLen
+            cSpec =  DTemplate(:, i) ~= 0 ;
+            ins = dataCube(cSpec, :);
+            res = sum(ins, 1);
+            [~,idx]= sort( res, 'descend' );
+            lowerIdx = find(res(idx)<=0,1) - 1;
+            if isempty( lowerIdx )
+                lowerIdx = length(idx);
+            end
+            if lowerIdx ~= 0
+                [w,h]=nnmf( ins(:,idx(1:lowerIdx)), 1 );
+                if isempty( DIonName )
+                    outD(cSpec, i) = w;
+                    outD(:, i) = outD(:, i)./ norm( outD(cSpec, i), 2 );
+                else
+                    cIonName = DIonName{i};
+                    for j = 1:length(cIonName)
+                        if ~isempty( strfind( cIonName{j}, 'CH2' ) )
+                            w(j) = 1e-3;
+                        end
+                    end
+                    outD(cSpec, i) = w;
+                    outD(:, i) = outD(:, i)./ norm( outD(cSpec, i), 2 );
+                end
+            end
+        end        
     end
-end
-
-
 end
 
