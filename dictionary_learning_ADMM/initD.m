@@ -63,7 +63,7 @@ elseif strcmp( method, 'NNMF' ) == 1
                         end
                     end
                     outD(cSpec, i) = w;
-                    outD(:, i) = outD(:, i)./ norm( outD(cSpec, i), 2 );
+                    outD(:, i) = outD(:, i)./ max( norm( outD(cSpec, i), 2 ), 1 );
                 end
             end
         end        
