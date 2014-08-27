@@ -57,7 +57,7 @@ end
 fprintf( 'constructing possible dictionary elements of each m/z...\n' );
 ins = zeros( sLen, 1 );
 for i = 1:sLen
-    ins(i) = max( dataCube(i, :) );
+    ins(i) = sum( dataCube(i, :) );
 end
 [sIns,idx] = sort( ins, 'descend' );
 totalIonInt = sum(ins);

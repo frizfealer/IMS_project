@@ -229,7 +229,7 @@ function J = jacobianstructure (auxdata)
 end
 
 function H = hessianstructure (auxdata)
-[H] = deal(auxdata{[end]});
+[H] = deal(auxdata{end});
 end
   
 function  H = hessian(x, sigma, lambda, auxdata)  
