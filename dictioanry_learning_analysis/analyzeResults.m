@@ -1,4 +1,4 @@
-function [ sigDict, sigM] = analyzeResults( expRec, DTemplate, BlkDS, SpeciesM, DIonName, mzAxis, requireInfoPath, thresDiffW, outNum, outFolder, outPicFlag )
+function [ sigDict, sigM, sigIdx] = analyzeResults( expRec, DTemplate, BlkDS, SpeciesM, DIonName, mzAxis, requireInfoPath, thresDiffW, outNum, outFolder, outPicFlag )
 %UNTITLED3 Summary of this function goes here
 % requireInfoPath: a data structure with three field: 
 % 1. bioPath: for bio file path, 2. macPath: for machine file path, 3. 
@@ -124,6 +124,10 @@ else
         sigDict(:, cntSigDict) = outD(:, targetW(j) );
         cntSigDict = cntSigDict + 1;
     end
+end
+sigIdx = zeros( length(sigM), 1 );
+for i = 1:length(sigM)
+    sigIdx(i) = find( SpeciesM == sigM(i) );
 end
 end
 
