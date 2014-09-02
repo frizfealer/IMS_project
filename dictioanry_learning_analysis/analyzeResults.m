@@ -1,5 +1,7 @@
-function [ sigDict, sigM, sigIdx] = analyzeResults( expRec, DTemplate, BlkDS, SpeciesM, DIonName, mzAxis, requireInfoPath, thresDiffW, outNum, outFolder, outPicFlag )
-%UNTITLED3 Summary of this function goes here
+function [ sigDict, sigM, sigIdx] = analyzeResults( expRec, DTemplate, BlkDS, SpeciesM, DIonName, mzAxis, requireInfoPath, outNum, outFolder, outPicFlag )
+%UNTITLED3
+%if outPicFlag == 0, requireInfoPath can be [], just for the significant
+%Dictionary elements output
 % requireInfoPath: a data structure with three field: 
 % 1. bioPath: for bio file path, 2. macPath: for machine file path, 3. 
 % registeredPath: for registered info. file path
