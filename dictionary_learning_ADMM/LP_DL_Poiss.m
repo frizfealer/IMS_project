@@ -1,4 +1,4 @@
-function [ val ] = LP_DL_Poiss( aMatrix, Y, W, W0, D, lambda, phi, theta, scaleFactor, logFY )
+function [ val, meanVal, stdVal ] = LP_DL_Poiss( aMatrix, Y, W, W0, D, lambda, phi, theta, scaleFactor, logFY, meanFlag )
 %LP_DL_Poiss Compute the log posterior for
 %Dictioanry Learning with Poisson distribution
 % aMatrix [h w], an indicator matrix of with 1 means for tranining
@@ -8,6 +8,7 @@ function [ val ] = LP_DL_Poiss( aMatrix, Y, W, W0, D, lambda, phi, theta, scaleF
 % scaleFactor [s h w], the scaling factor (0~1) for the log-likelihood
 % terms, if empty, then the value is 1
 % shoud minimize this value
+% meanFlag:, is == 1, compute mean of LL and std of LL for input samples
 [sLen, hei, wid] = size( Y );
 
 preY = D* W(:, :) + repmat( W0(:)', sLen, 1 ); %preY [s ,w*h]
@@ -42,10 +43,9 @@ end
 %         end
 %     end
 % end
-idx = aMatrix == 1;
-firstTwoTermsMat = -Y(:, idx).*preY(:, idx) + exp( preY(:, idx) );
+firstTwoTermsMat = -Y(:, aMatrix).*preY(:, aMatrix) + exp( preY(:, aMatrix) );
 if ~isempty( logFY )
-    firstTwoTermsMat = firstTwoTermsMat - logFY(:, idx);
+    firstTwoTermsMat = firstTwoTermsMat - logFY(:, aMatrix);
 end
 if isempty( scaleFactor )
     scaleFactor = 1;
@@ -55,3 +55,12 @@ firstTwoTerms = sum( sum( firstTwoTermsMat ) );
 % firstTwoTerms sum( Y(:).*z0(:) - exp(z0(:)) ) 
 val = firstTwoTerms + lambda * norm( W(:), 1 ) ...
     + phi * norm( D(:), 1 ) + theta * ( norm( Whminus(:), 1 ) + norm( Wwminus(:), 1 ) );
+if meanFlag == 1
+    meanVal = mean(firstTwoTermsMat(:) + lambda * norm( W(:), 1 ) ...
+    + phi * norm( D(:), 1 ) + theta * ( norm( Whminus(:), 1 ) + norm( Wwminus(:), 1 ) ) );
+    stdVal = std(firstTwoTermsMat(:)) + lambda * norm( W(:), 1 ) ...
+    + phi * norm( D(:), 1 ) + theta * ( norm( Whminus(:), 1 ) + norm( Wwminus(:), 1 ) );
+else
+    meanVal = [];
+    stdVal = [];
+end
