@@ -1,4 +1,4 @@
-function [ sigDict, sigM, sigIdx] = analyzeResults( expRec, DTemplate, BlkDS, SpeciesM, DIonName, mzAxis, requireInfoPath, outNum, outFolder, outPicFlag )
+function [ sigDict, sigM, sigIdx] = analyzeResults( expRec, DTemplate, BlkDS, SpeciesM, DIonName, mzAxis, requireInfoPath, outNum, outFolder, outPicFlag, relation )
 %if outPicFlag == 0, requireInfoPath can be [], just for the significant
 %Dictionary elements output
 % requireInfoPath: a data structure with three field: 
@@ -19,27 +19,49 @@ for i = 1:mLen
     ins(i) = max(outW(i,:));
 end
 
+%choose W at least larger then 1e-3
+%and sort W according to their intensities
 targetW = find( ins > 1e-3 ); 
 [~,idx] = sort(ins(targetW),'descend');
 targetW = targetW(idx);
-covW = cov(outW(targetW(1:31),:)' );
+% covW = cov(outW(targetW(1:31),:)' );
 outW = full(outW);
+outW(outW<1e-3)=0;
 outD = full(outD);
 
-ins2 = zeros(length(targetW),1);
-for j = 1:length(targetW)
-    for i = 1:BlkDS.blkNum
-        bW{i} = outW(targetW(j), BlkDS.B2GMap{i});
-    end
-    tmp = [];
-    for i = 1:BlkDS.blkNum-1
-        for z = (i+1):BlkDS.blkNum
-            tmp = [tmp abs(mean(bW{i})-mean(bW{z}))];
+%choose W has discriminat distribution between bacteria colonies
+%REF_AREA: reference area, usually the area where the interaction of
+%bacteria conolines happened.
+%detecting the compound where the interation of colonies faciliates the
+%secretion
+REF_AREA = 1;
+if strcmp( relation, 'facilitate' ) == 1
+    ins2 = zeros(length(targetW),1);
+    for j = 1:length(targetW)
+        for i = 1:BlkDS.blkNum
+            bW{i} = outW(targetW(j), BlkDS.B2GMap{i});
         end
+        val = 0;
+        for i = 1:BlkDS.blkNum
+            if i ~= REF_AREA
+                val = val + mean(bW{i});
+            end
+        end
+        ins2(j) = mean(bW{REF_AREA}) - val;
     end
-    ins2(j) = max(tmp);
+    [~,idxIns2] = sort(ins2,'descend');
 end
-[~,idxIns2] = sort(ins2,'descend');
+if strcmp( relation, 'hinder' ) == 1
+    ins2 = zeros(length(targetW),1);
+    for j = 1:length(targetW)
+        for i = 1:BlkDS.blkNum
+            bW{i} = outW(targetW(j), BlkDS.B2GMap{i});
+        end   
+        ins2(j) = sum(bW{REF_AREA});
+    end
+    [~,idxIns2] = sort(ins2,'ascend');
+end
+
 idxIns2=idxIns2(1:outNum)';
 
 if outPicFlag == 1
@@ -55,10 +77,12 @@ if outPicFlag == 1
     sigDict= zeros( length(mzAxis), outNum);
     cntSigDict = 1;
     sigM = zeros( outNum, 1 );
+    picNum = 0;
     for j = idxIns2
     %     if ins2(j) < thresDiffW
     %         continue;
     %     end
+        picNum = picNum + 1;
         fprintf( 'output MW: %g, max intensity of W: %g\n', SpeciesM( targetW(j) ), full( ins( targetW(j) ) ) );
         sigM(cntSigDict) = SpeciesM( targetW(j) ) ;
         figure('Visible','Off'); 
@@ -110,7 +134,7 @@ if outPicFlag == 1
         xlabel( 'width' ); ylabel( 'height' );
         axis([h1 h2],'square')
         hhh=gcf; set(hhh,'pos', [1 41 1366 650] );
-        export_fig(['M_', num2str(round(SpeciesM(targetW(j)))), '_DictionaryElement.jpg']);
+        export_fig([ 'number_', num2str(picNum), '_M_', num2str(SpeciesM(targetW(j))), '_DictionaryElement.jpg']);
         %hwplotprep
     %     orient landscape;
         %print ( '-dpdf', ['M_', num2str(round(SpeciesM(targetW(j)))), '_DictionaryElement'] );
