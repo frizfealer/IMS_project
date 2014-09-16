@@ -1,14 +1,28 @@
-function [ output_args ] = model_selection_leave_out_data( dataCube, expRecReal, pDTemplate, pSpeciesM, pDIonName, mzAxis  )
-%UNTITLED4 Summary of this function goes here
-%   Detailed explanation goes here
-BlkDS = conBLKDS( dataCube );
-[ sigDict, sigM, sigIdx] = analyzeResults( expRecReal, pDTemplate, BlkDS, pSpeciesM, pDIonName, mzAxis, [], 892, '~/', 0 );
-D = expRecReal.outD;
+function [ WRes1, WRes2 ] = model_selection_leave_out_data( dataCube, expRecReal, DTemplate, SpeciesM, DIonName, mzAxis, type, outName, refRegionName  )
+%model_selection_leave_out_data model selection, select model of origianl
+%dictionary element d and elements that generated from d
+%dataCube: experiment data
+%expRecReal: experiment result
+%DTemplate: dictionary template
+%SpeciesM: species M for each element of DTemplate
+%DIonName: Ion name for each element of DTemplate
+%mzAxis: mzAxis for the experiment
+%type: 'facilitate' or 'hinder'
+%outName: resulting file path
+%refRegionName: reference region of interaction colonies
+
+%% default constants:
 IGNORE_INT = 1e-2;
-[ aMatrix ] = genAMatrix( BlkDS, 0.1, 'byRow');
-[sLen, hei, wid] = size(dataCube);
+TEST_DIC_ELE_NUM = 30;
+
+BlkDS = conBLKDS( dataCube );
+[~, ~, sigIdx] = analyzeResults( expRecReal, DTemplate, BlkDS, SpeciesM, DIonName, mzAxis, [], 892, '~/', 0, type, refRegionName );
+D = expRecReal.outD;
+[ aMatrix ] = genAMatrix( BlkDS, 0.1, 'byRow' );
+[~, hei, wid] = size( dataCube );
 nLen = hei*wid;
 
+%% set z0
 z0 = log(dataCube);
 z0(z0==-inf)=0;
 %if not in traing set, we shoud not initialize z0 according to it.
@@ -21,21 +35,24 @@ for i = 1:hei*wid
         z0(:, i) = tmp;
     end
 end
+%% set scale factor
 scaleFactor =  1 / ( max( dataCube(:) ) / max( z0(:) ) ) * 100;
 
+%% set phi theta
 phi = expRecReal.phi;
 theta = expRecReal.theta;
 
 %% test for two hypothesis for each dictionary elements
-%one is one dictionary elements
+%The first is one dictionary elements
 %another is n dictionary elements (assume a dictionary element with n
-%entries > IGNORE_INT), nd each elements only has one entry.
-TEST_DIC_ELE_NUM = 30;
-for i = 14:TEST_DIC_ELE_NUM
+%entries > IGNORE_INT), and each elements only has one entry.
+for i = 1:TEST_DIC_ELE_NUM
     cMZ = find( D(:, sigIdx(i)) > IGNORE_INT );
     if length(cMZ) == 1
         continue;
     end
+    
+    %% first model
     firstD = D(cMZ, sigIdx(i));
     W0 = zeros( 1, nLen );
     W = zeros( 1, nLen );
@@ -43,6 +60,8 @@ for i = 14:TEST_DIC_ELE_NUM
     [res] = updateW_ADMM...
         ( dataCube(cMZ,:, :), firstD, W, W0, z0(cMZ, :, :), z1, aMatrix, BlkDS, 100, 0, phi, theta, scaleFactor, [] );
     WRes1(i) = res;
+    
+    %% second model
     secondD = zeros( length(cMZ) );
     for j = 1:length(cMZ)
         secondD(j, j) = D(cMZ(j), sigIdx(i));
@@ -54,7 +73,7 @@ for i = 14:TEST_DIC_ELE_NUM
         ( dataCube(cMZ,:, :), secondD, W, W0, z0(cMZ, :, :), z1, aMatrix, BlkDS, 100, 0, phi, theta, scaleFactor, [] );
     WRes2(i) = res;
 
-    save( 'res_differentModels_continue.mat', 'WRes1', 'WRes2' );
+    save( outName, 'WRes1', 'WRes2' );
 end
 
 
