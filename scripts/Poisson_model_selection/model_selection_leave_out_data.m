@@ -1,5 +1,5 @@
 function [ WRes1, WRes2 ] = model_selection_leave_out_data( dataCube, expRecReal, DTemplate, SpeciesM, DIonName, mzAxis, type, outName, refRegionName  )
-%model_selection_leave_out_data model selection, select model of origianl
+%model_selection_leave_out_data model, select model of origianl
 %dictionary element d and elements that generated from d
 %dataCube: experiment data
 %expRecReal: experiment result
@@ -12,7 +12,9 @@ function [ WRes1, WRes2 ] = model_selection_leave_out_data( dataCube, expRecReal
 %refRegionName: reference region of interaction colonies
 
 %% default constants:
+%the intensity of dictionary entries to be ignore
 IGNORE_INT = 1e-2;
+%the number of element need to be tested
 TEST_DIC_ELE_NUM = 30;
 
 BlkDS = conBLKDS( dataCube );
