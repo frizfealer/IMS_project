@@ -12,7 +12,7 @@ curRhoAry = zeros( itNum, 1 );
 curRhoAry(1) = 1;
 u0 = sparse( zeros( size( z0 ) ) );
 u1 = sparse( zeros( size( z1 ) ) );
-LPAryADMM(1) = LP_DL_Poiss( aMatrix, Y, W, W0, D, lambda, phi, theta, scaleFactor, logFY );
+LPAryADMM(1) = LP_DL_Poiss( aMatrix, Y, W, W0, D, lambda, phi, theta, scaleFactor, logFY, 0 );
 [sLen, hei, wid] = size( Y );
 nLen = hei*wid;
 [~, mLen] = size( D );
@@ -206,7 +206,7 @@ for itNumADMM = 1:itNum
     resRecAry(itNumADMM, :) = [rfn2, epsPri, s0n2, epsDual];
     tmp = max( abs( W(:) -  prevW_ADMM(:) ) );
     fprintf( '%d: %g %g %g %g %g %g\n',itNumADMM, rfn2, epsPri, s0n2, epsDual, curRhoAry(itNumADMM), full(tmp) );
-    LPAryADMM(itNumADMM+1) = LP_DL_Poiss( aMatrix, Y, W, W0, D, lambda, phi, theta, scaleFactor, logFY );
+    LPAryADMM(itNumADMM+1) = LP_DL_Poiss( aMatrix, Y, W, W0, D, lambda, phi, theta, scaleFactor, logFY, 0 );
     
     if ( rfn2 < epsPri && s0n2 < epsDual ) ||...
             ( max( abs(rf(:)) ) < 1e-3 && max( abs(s0(:)) ) < 1e-3 ) || ...
