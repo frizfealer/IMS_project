@@ -1,4 +1,4 @@
-function [ sigDict, sigM, sigIdx] = analyzeResults( expRec, DTemplate, BlkDS, SpeciesM, DIonName, mzAxis, requireInfoPath, outNum, outFolder, outPicFlag, relation )
+function [ sigDict, sigM, sigIdx] = analyzeResults( expRec, DTemplate, BlkDS, SpeciesM, DIonName, mzAxis, requireInfoPath, outNum, outFolder, outPicFlag, relation, refColonName )
 %if outPicFlag == 0, requireInfoPath can be [], just for the significant
 %Dictionary elements output
 % requireInfoPath: a data structure with three field: 
@@ -34,7 +34,7 @@ outD = full(outD);
 %bacteria conolines happened.
 %detecting the compound where the interation of colonies faciliates the
 %secretion
-REF_AREA = 1;
+REF_AREA = refColonName;
 if strcmp( relation, 'facilitate' ) == 1
     ins2 = zeros(length(targetW),1);
     for j = 1:length(targetW)
