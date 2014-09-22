@@ -173,9 +173,12 @@ end
 %% managing late update for some dictionary elements
 % validMap = indMap .* aMatrix;
 % yy = inY(:, validMap==1);
-[ rSet ] = estimateDRelevant( inY, outD, DTemplate, indMap, LATE_UPDATE_PERCENT, LATE_UPDATE_INTTHRES  );
+if LATE_UPDATE_FLAG == 1
+    [ rSet ] = estimateDRelevant( inY, outD, DTemplate, indMap, LATE_UPDATE_PERCENT, LATE_UPDATE_INTTHRES  );
+end
 %% main program start
-LPAry(1) = LP_DL_Poiss( aMatrix, inY, outW, outW0, outD, lambda, phi, theta, scaleFactor, logFY );
+MEAN_FLAG = 0;
+LPAry(1) = LP_DL_Poiss( aMatrix, inY, outW, outW0, outD, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
 fprintf( 'parameters: outer iteration number = %d, ', OUTER_IT_NUM );
 fprintf( 'ADMM iteration number = %d, Hessian flag for update D = %d, ', ADMM_IT_NUM, HES_FLAG );
 fprintf( 'Cluster number used to update = %d, ', CLUSTER_NUM );
@@ -235,7 +238,7 @@ for it = 1:OUTER_IT_NUM
     fprintf( 'M_ADMM_IT_NUM = %d\n', M_ADMM_IT_NUM );
     for itNumADMM = 1:M_ADMM_IT_NUM
         prevWADMM = relW;
-        LPAryADMM(itNumADMM) = LP_DL_Poiss( aMatrix, inY, relW, outW0, relD, lambda, phi, theta, scaleFactor, logFY );
+        LPAryADMM(itNumADMM) = LP_DL_Poiss( aMatrix, inY, relW, outW0, relD, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
         fprintf( 'LP: %g ', LPAryADMM(itNumADMM) );
         tic
         curRho = curRhoAry(itNumADMM);
@@ -441,7 +444,7 @@ for it = 1:OUTER_IT_NUM
         u1 = relU1;
     end
     
-    LPAry(it+1) = LP_DL_Poiss( aMatrix, inY, outW, outW0, outD, lambda, phi, theta, scaleFactor, logFY );
+    LPAry(it+1) = LP_DL_Poiss( aMatrix, inY, outW, outW0, outD, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
     tmp1 = max( abs( outW(:)-prevW(:) ) );
     tmp2 = max( abs( outW0(:)-prevW0(:) ) );
     tmp3 = max( abs( outD(:)-prevD(:) ) );
