@@ -1,4 +1,4 @@
-function [ gY ] = genY( gD, gW, gW0 )
+function [ gY ] = genY_Poisson( gD, gW, gW0 )
 %genY generate Y from gD, gW, gW0 with poisson noise
 %   Detailed explanation goes here
 [SLEN] = size(gD, 1);
