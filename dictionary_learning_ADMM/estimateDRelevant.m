@@ -68,7 +68,11 @@ for i = 1:sLen
         break;
     end
 end
-intEleVec = idx(1:(i-1));
+if i == 1
+    intEleVec = idx(1);
+else
+    intEleVec = idx(1:(i-1));
+end
 pEleList = [];
 for i = 1:length(intEleVec)
     pEle = find( DTemplate( intEleVec(i), : ) == 1 );
