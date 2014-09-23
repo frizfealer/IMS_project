@@ -66,7 +66,8 @@ elseif strcmp( method, 'NNMF' ) == 1
                     outD(:, i) = outD(:, i)./ max( norm( outD(cSpec, i), 2 ), 1 );
                 end
             end
-        end        
-    end
+        end
+end
+
 end
 
