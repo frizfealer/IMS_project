@@ -24,3 +24,8 @@ param.INIT_D = 'NNMF'; %the method of dictionary initialization
 save( 'experiment1_set.mat' );
 
 [ expRec ] = dictionaryLearning_ADMM_v4( gY, [], DTemplate, [], lambda, theta, phi, aMatrix, BlkDS, [], snapPath, param );
+[ elambda, etheta, ephi ] = estimateHypParam( expRec.outW, expRec.outD, DTemplate, BlkDS );
+[ expRec2 ] = dictionaryLearning_ADMM_v4( gY, [], DTemplate, [], elambda, etheta, ephi, aMatrix, BlkDS, [], snapPath, param );
+param.INIT_D = 'random';
+param.D_HIST_PATH = 'DHist_temp.mat';
+[ expRec3 ] = dictionaryLearning_ADMM_v4( gY, [], DTemplate, [], lambda, theta, phi, aMatrix, BlkDS, [], snapPath, param );
