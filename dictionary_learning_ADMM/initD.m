@@ -66,6 +66,30 @@ elseif strcmp( method, 'NNMF' ) == 1
                     outD(:, i) = outD(:, i)./ max( norm( outD(cSpec, i), 2 ), 1 );
                 end
             end
+            
+            %% display and debugging...
+%             [lambda,psi,T,stats,F] = factoran( ins(:,idx(1:lowerIdx))', 1); 
+% %             lambda = lambda / norm(lambda)
+% %             w = w / norm(w)
+% %             nnn = mean( ins(:,idx(1:lowerIdx)), 2 );
+% %             nnn = nnn / norm(nnn)
+%             corrcoef( ins(:,idx(1:lowerIdx))' )
+%             temp = ins(:,idx(1:lowerIdx))';
+%             [sa, sb] = size( temp );
+%             [ temp, centers ] = discretize( temp(:), 1e5 );
+%             temp = reshape( temp, sa, sb );
+%             rrr = find( cSpec == 1 );
+%             val = zeros( length(rrr), length(rrr) );
+%             for j = 1:length(rrr)-1
+%                 for z = j+1:length(rrr)
+%                     [ val(j, z) ] = computeMI( temp(:,j), temp(:,z), centers );
+%                 end
+%             end
+%             val
+%             figure;
+%             for j = 1:length(rrr)
+%                 subplot(3,3,j); imagesc(reshape(dataCube(rrr(j),:),54,88)); colorbar;
+%             end
         end
 end
 
