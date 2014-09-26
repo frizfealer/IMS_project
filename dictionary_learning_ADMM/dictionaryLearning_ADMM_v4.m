@@ -120,7 +120,13 @@ if isfield( param, 'D_HIST_PATH' )
 else
     D_HIST_PATH = [];
 end
-DHistCell = cell( OUTER_IT_NUM, 1 );
+if isfield( param, 'W_HIST_PATH' )
+    W_HIST_PATH = param.W_HIST_PATH;
+else
+    W_HIST_PATH = [];
+end
+DHistCell = cell( OUTER_IT_NUM+1, 1 );
+WHistCell = cell( OUTER_IT_NUM+1, 1 );
 if isfield( param, 'D_ION_NAME' )
     D_ION_NAME = param.D_ION_NAME;
 else
@@ -137,11 +143,15 @@ resRecCell = cell(OUTER_IT_NUM, 1);
 %% initialize all variable
 if isempty(initVar)
     [ outD ] = initD( inY, DTemplate, INIT_METHOD, D_ION_NAME );
+    DHistCell{1} = outD;
     outW = sparse( zeros( mLen, hei*wid ) );
+    WHistCell{1} = outW;
     outW0 = sparse( zeros( hei, wid ) );
 else
     outD = initVar.outD;
+    DHistCell{1} = outD;
     outW = initVar.outW;
+    WHistCell{1} = outW;
     outW0 = initVar.outW0;
     z0 = initVar.z0; z1 = initVar.z1;
 end
@@ -362,8 +372,8 @@ for it = 1:OUTER_IT_NUM
         resRecAry(itNumADMM, :) = [rfn2, epsPri, s0n2, epsDual];
         tmp = max( abs( relW(:) -  prevWADMM(:) ) );
         fprintf( '%d: %g %g %g %g %g %g\n',itNumADMM, rfn2, epsPri, s0n2, epsDual, curRhoAry(itNumADMM), full(tmp) );
-        if ( rfn2 < epsPri && s0n2 < epsDual ) ||...
-                ( max( abs(rf(:)) ) < 1e-3 && max( abs(s0(:)) ) < 1e-3 ) || ...
+        if ( rfn2 < epsPri && s0n2 < epsDual ) &&...
+                ( max( abs(rf(:)) ) < 1e-3 && max( abs(s0(:)) ) < 1e-3 ) && ...
                 ( tmp < 1e-3 )
             break;
         end
@@ -458,9 +468,13 @@ for it = 1:OUTER_IT_NUM
 %         expRec.rhoCell = rhoCell; expRec.resRecCell = resRecCell;
         save( snapFilePath, 'expRec' );
     end
-    DHistCell{it} = outD;
     if ~isempty( D_HIST_PATH )
+        DHistCell{it+1} = outD;
         save( D_HIST_PATH, 'DHistCell' );
+    end
+    if ~isempty( W_HIST_PATH )
+        WHistCell{it+1} = outW;
+        save( W_HIST_PATH, 'WHistCell' );
     end
     if abs(LPAry(it+1)-LPAry(it)) <= 1e-6 || ...
         ( max( tmp1, tmp2 ) < 1e-3 &&  tmp3 < 1e-3 )
