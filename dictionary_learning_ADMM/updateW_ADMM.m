@@ -165,8 +165,8 @@ for itNumADMM = 1:itNum
     else
         curRhoAry(itNumADMM+1) = curRhoAry(itNumADMM);
     end
-    if nargin == 16 %WHistFlag == 1
-        if varargin{nargin} == 1
+    if ~isempty(varargin) %WHistFlag == 1
+        if varargin{1} == 1
             WHistCell{itNumADMM} = W;
         end
     end
@@ -181,8 +181,8 @@ WResStruct.LPAry = sparse( LPAryADMM );
 WResStruct.rhoAry = sparse( curRhoAry );
 WResStruct.resAry = sparse( resRecAry );
 WResStruct.WDiff = sparse( tmp );
-if nargin == 16 %WHistFlag == 1
-    if varargin{nargin} == 1
+if ~isempty(varargin) %WHistFlag == 1
+    if varargin{1} == 1
         WResStruct.WHistCell = WHistCell;
     end
 end
