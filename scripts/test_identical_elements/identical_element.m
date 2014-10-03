@@ -40,44 +40,56 @@ end
 %% first test, with zero initialization on W and same value on D
 [WResStruct] = updateW_ADMM( Y, D, W_init, W0_init, z0, z1, aMatrix, BlkDS, 100, lambda, 0, theta, scaleFactor, [], Rblk, 1 );
 figure; subplot(1,2,1); plot(WResStruct.W(1,:)); title('first element''s weight'); subplot(1,2,2); plot(WResStruct.W(2,:)); title('second element''s weight' );
-
+export_fig -transparent same_D_zero_W_init.pdf
+close
 %% second test, with one element random initialization on W and same value on D
 W_init(1,:) = abs(randn(1,sNum));
 [WResStruct] = updateW_ADMM( Y, D, W_init, W0_init, z0, z1, aMatrix, BlkDS, 100, lambda, 0, theta, scaleFactor, [], Rblk, 1 );
 figure; subplot(1,2,1); plot(WResStruct.W(1,:)); title('first element''s weight'); subplot(1,2,2); plot(WResStruct.W(2,:)); title('second element''s weight' );
-
-%% second test, with zero initialization on W and different value on D
+export_fig -transparent same_D_zero_W_random_init.pdf
+close
+%% third test, with zero initialization on W and different value on D
 D(1, 1) = 0.9; D(1, 2) = 0.3;
 W_init = zeros( 2, sNum );
 [WResStruct] = updateW_ADMM( Y, D, W_init, W0_init, z0, z1, aMatrix, BlkDS, 100, lambda, 0, theta, scaleFactor, [], Rblk, 1 );
 figure; subplot(1,2,1); plot(WResStruct.W(1,:)); title('first element''s weight'); subplot(1,2,2); plot(WResStruct.W(2,:)); title('second element''s weight' );
 WCell0 = WResStruct.WHistCell;
-
+export_fig -transparent same_D_diff_W_zero.pdf
+close
+%% forth test, with zero initialization on W and little different value on D
 D(1, 1) = 0.55; D(1, 2) = 0.5;
 W_init = zeros( 2, sNum );
 [WResStruct] = updateW_ADMM( Y, D, W_init, W0_init, z0, z1, aMatrix, BlkDS, 100, lambda, 0, theta, scaleFactor, [], Rblk, 1 );
 figure; subplot(1,2,1); plot(WResStruct.W(1,:)); title('first element''s weight'); subplot(1,2,2); plot(WResStruct.W(2,:)); title('second element''s weight' );
 WCell1 = WResStruct.WHistCell;
-
+export_fig -transparent same_D_diff_0.55_0.5_W_zero.pdf
+close
+%% fivth test, with zero initialization on W and little different on D and lambda = 0.75
 lambda = 0.75;
 [WResStruct] = updateW_ADMM( Y, D, W_init, W0_init, z0, z1, aMatrix, BlkDS, 100, lambda, 0, theta, scaleFactor, [], Rblk, 1 );
 figure; subplot(1,2,1); plot(WResStruct.W(1,:)); title('first element''s weight'); subplot(1,2,2); plot(WResStruct.W(2,:)); title('second element''s weight' );
 WCell2 = WResStruct.WHistCell;
-
+export_fig -transparent same_D_diff_0.55_0.5_W_zero_lambda_0.75.pdf
+close
+%% sixth test, with zero initialization on W and litte different on D and lambda = 0.5
 D(1, 1) = 0.9; D(1, 2) = 0.85; lambda = 0.5;
 W_init = zeros( 2, sNum );
 [WResStruct] = updateW_ADMM( Y, D, W_init, W0_init, z0, z1, aMatrix, BlkDS, 100, lambda, 0, theta, scaleFactor, [], Rblk, 1 );
 figure; subplot(1,2,1); plot(WResStruct.W(1,:)); title('first element''s weight'); subplot(1,2,2); plot(WResStruct.W(2,:)); title('second element''s weight' );
 WCell3 = WResStruct.WHistCell;
-
+export_fig -transparent same_D_diff_0.9_0.85_W_zero_lambda_0.5.pdf
+close
+%% seventh test, with zero initialzation on W and large different on D lambda = 0.1
 D(1, 1) = 0.9; D(1, 2) = 0.3;
 W_init = zeros( 2, sNum );
 lambda = 0.1;
 [WResStruct] = updateW_ADMM( Y, D, W_init, W0_init, z0, z1, aMatrix, BlkDS, 100, lambda, 0, theta, scaleFactor, [], Rblk, 1 );
 figure; subplot(1,2,1); plot(WResStruct.W(1,:)); title('first element''s weight'); subplot(1,2,2); plot(WResStruct.W(2,:)); title('second element''s weight' );
 WCell4 = WResStruct.WHistCell;
+export_fig -transparent same_D_diff_0.9_0.3_W_zero_lambda_0.1.pdf
+close
 
-
+%% show the changes of W among iterations
 figure;
 for i = 1:100
     imagesc(WCell2{i});title(['i = ', num2str(i)]); colorbar;
