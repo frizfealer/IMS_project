@@ -1,8 +1,8 @@
-function [ val, meanVal, stdVal ] = LP_DL_Poiss( aMatrix, Y, W, W0, D, lambda, phi, theta, scaleFactor, logFY, meanFlag )
-%LP_DL_Poiss Compute the log posterior for
+function [ val, meanVal, stdVal ] = LP_DL_Poiss( aMatrix, Y, W, W0, D, lambda, phi, theta, scaleFactor, logFY, varargin )
+%LP_DL_Poiss Compute the negative log posterior for
 %Dictioanry Learning with Poisson distribution
 % aMatrix [h w], an indicator matrix of with 1 means for tranining
-% Y [s h w], W [m h w], W0 [h, w], D [s m]
+% Y [s h w], W [m h w] or W[m h*w], W0 [h, w] or W0 [h*w, 1], D [s m]
 % lambda, phi, theta, scalar
 % logFY [s h w], log of the factorial of Y, can be empty
 % scaleFactor [s h w], the scaling factor (0~1) for the log-likelihood
@@ -55,12 +55,12 @@ firstTwoTerms = sum( sum( firstTwoTermsMat ) );
 % firstTwoTerms sum( Y(:).*z0(:) - exp(z0(:)) ) 
 val = firstTwoTerms + lambda * norm( W(:), 1 ) ...
     + phi * norm( D(:), 1 ) + theta * ( norm( Whminus(:), 1 ) + norm( Wwminus(:), 1 ) );
-if meanFlag == 1
+if length(varargin) == 1 && varargin{1} == 1 % meanFlag == 1
     meanVal = mean(firstTwoTermsMat(:) + lambda * norm( W(:), 1 ) ...
     + phi * norm( D(:), 1 ) + theta * ( norm( Whminus(:), 1 ) + norm( Wwminus(:), 1 ) ) );
     stdVal = std(firstTwoTermsMat(:)) + lambda * norm( W(:), 1 ) ...
     + phi * norm( D(:), 1 ) + theta * ( norm( Whminus(:), 1 ) + norm( Wwminus(:), 1 ) );
-else
+else 
     meanVal = [];
     stdVal = [];
 end
