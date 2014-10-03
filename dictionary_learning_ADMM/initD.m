@@ -1,5 +1,9 @@
 function [ outD ] = initD( dataCube, DTemplate, method, DIonName )
-%initD initialize dictioanry
+% initD initialize dictioanry
+% dataCube, input tensor data
+% DTemplate, matrix with [sLen mLen]
+% method: 'random', 'online-DL', 'NNMF'
+% DIonName: can be [], if provided, CH2-ion-type is set to zero
 mLen = size( DTemplate, 2 );
 sLen = size( DTemplate, 1 );
 % thres = round( mLen*0.05 );
@@ -95,3 +99,18 @@ end
 
 end
 
+%% testing if CH2 is not initialze > 1e-3
+% for i = 1:size(pDTemplate, 2)
+% cIonName = pDIonName{i};
+% idx = find(pDTemplate(:,i)==1);
+% temp =[];
+% for j = 1:length(cIonName)
+% if ~isempty( strfind(cIonName{j}, 'CH2' ))
+% temp = [temp j];
+% end
+% end
+% ttt = find(D_init(idx, i) > 1e-3);
+% if ~isempty(intersect(ttt,temp))
+% fprintf( 'element %d\n', i );
+% end
+% end

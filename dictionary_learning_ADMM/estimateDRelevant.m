@@ -1,13 +1,14 @@
-function [ rSet ] = estimateDRelevant( dataCube, outD, DTemplate, indMap, percent, intThres )
-%estimateRelevant estimate relevant of each dictionary elements
-%dataCube: input MASS signals
-%outD: current dictionary
-%DTemplate: dictionary template (0-1 entry)
-%indMap: indice map of the same size of sample, is a data field of BlkDS
-%percent: the percent of dictionary elements you want to use in all outer
-%iterations
+function [ rSet ] = estimateDRelevant( dataCube, outD, DTemplate, indMap, percent, intThres, DIonName )
+% estimateRelevant estimate relevant of each dictionary elements
+% dataCube: input MASS signals
+% outD: current dictionary
+% DTemplate: dictionary template (0-1 entry)
+% indMap: indice map of the same size of sample, is a data field of BlkDS
+% percent: the percent of dictionary elements you want to use in all outer
+% iterations
 % intThres: the percentage of intensity you want to include in your m/z
 % selections
+% DIonName: can be [], if given, consider ion type, with CH2, we do not use it at first
 if isempty( percent )
     percent = 0.2;
 end
@@ -76,6 +77,17 @@ end
 pEleList = [];
 for i = 1:length(intEleVec)
     pEle = find( DTemplate( intEleVec(i), : ) == 1 );
+    temp = [];
+    if ~isempty( DIonName )
+        for j = 1:length(pEle)
+            cIonName = DIonName{pEle(j)};
+            cPeak = find( DTemplate(:, pEle(j)) == 1 );
+            if ~isempty( strfind( cIonName{ cPeak == intEleVec(i) }, 'CH2' ) ) 
+                temp = [temp, j];
+            end
+        end
+    end
+    pEle(temp) = [];
     cEleRes = resAry(pEle);
     [~,idx] = sort(cEleRes);
     pEleList{i} = pEle(idx);
@@ -97,4 +109,18 @@ while length(rSet) < eleLimit
 end
 
 end
+
+% %% testing if for each m/z value, there is a peak existed in a dictionary element that is not +CH2 accouts for it
+% DS = D_init(:,rSet);
+% for i = 1:size(pDTemplate, 1)
+% pElem = find( pDTemplate(i, rSet) == 1 );
+% for j = 1:length(pElem)
+% cIonName = pDIonName{rSet(pElem(j))};
+% cPeak = find( pDTemplate(:, rSet(pElem(j)) )==1);
+% ttt = find(cPeak == i );
+% if ~isempty( strfind( cIonName{ttt}, 'CH2' ) ) & DS(i,pElem(j)) > 1e-3 
+% fprintf( 'm/z #: %d, element #: %d, int: %g\n', i, j, DS(i, ttt) );
+% end
+% end
+% end
 
