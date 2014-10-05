@@ -233,16 +233,30 @@ for it = 1:OUTER_IT_NUM
     LPAryADMM = WResStruct.LPAry;
     rhoCell{it} = WResStruct.rhoAry;
     resRecCell{it} = WResStruct.resAry;
+    
+    %% if W is too low, make corresponding D to zero
+    if LATE_UPDATE_FLAG == 1 && it < floor(OUTER_IT_NUM*0.8)
+        relDTemplate = DTemplate(:, rSet);
+    else
+        relDTemplate = DTemplate;
+    end
+    W_lOWERBOUND = 1e-4;
+    for i = 1:size(relW, 1)
+        if max(relW(i,:)) < W_lOWERBOUND
+            relD(relDTemplate(:,i)==1, i) = 1e-6;
+        end
+    end
 
     validMap = BlkDS.indMap .* aMatrix;
     if isempty( deInfo )
-        if LATE_UPDATE_FLAG == 1 && it < floor(OUTER_IT_NUM*0.8)
-           %[ relD ] = updateD_v5( inY, relW, outW0, relD, DTemplate(:, rSet), validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM );
-            [ relD ] = updateD_v8_ipopt( inY, relW, outW0, relD, DTemplate(:, rSet), validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM );
-        else
-%            [ relD ] = updateD_v5( inY, relW, outW0, relD, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM );
-            [ relD ] = updateD_v8_ipopt( inY, relW, outW0, relD, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM );
-        end
+%         if LATE_UPDATE_FLAG == 1 && it < floor(OUTER_IT_NUM*0.8)
+%            %[ relD ] = updateD_v5( inY, relW, outW0, relD, DTemplate(:, rSet), validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM );
+%             [ relD ] = updateD_v8_ipopt( inY, relW, outW0, relD, DTemplate(:, rSet), validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM );
+%         else
+% %            [ relD ] = updateD_v5( inY, relW, outW0, relD, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM );
+%             [ relD ] = updateD_v8_ipopt( inY, relW, outW0, relD, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM );
+%         end
+        [ relD ] = updateD_v8_ipopt( inY, relW, outW0, relD, relDTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM );
     end
 
     if LATE_UPDATE_FLAG == 1
@@ -282,6 +296,7 @@ for it = 1:OUTER_IT_NUM
         WHistCell{it+1} = outW;
         save( W_HIST_PATH, 'WHistCell' );
     end
+    % if AND all conditions, take too many iteration to converge
     if abs(LPAry(it+1)-LPAry(it)) <= 1e-6 || ...
         ( max( tmp1, tmp2 ) < 1e-3 &&  tmp3 < 1e-3 )
         break;

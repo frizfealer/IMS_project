@@ -150,7 +150,7 @@ for itNumADMM = 1:itNum
     time = toc;
     fprintf( 'time: %g\n', time );
     LPAryADMM(itNumADMM+1) = LP_DL_Poiss( aMatrix, Y, W, W0, D, lambda, phi, theta, scaleFactor, logFY, 0 );
-    
+    % ALL conditions must be satisfied to have next big update
     if ( rfn2 < epsPri && s0n2 < epsDual ) &&...
             ( max( abs(rf(:)) ) < 1e-3 && max( abs(s0(:)) ) < 1e-3 ) && ...
             ( tmp < 1e-3 )

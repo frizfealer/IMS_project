@@ -88,8 +88,7 @@ for i = 1:3
 end
 
 %% both expRec4 and expRec5 work successfully deconvolute data
-% these figures are generated from expRec6
-load('DHist_expRec_v5.mat');
+load('DHist_expRec.mat');
 for i = 1:length(DHistCell)
     if isempty( DHistCell{i} )
         break
@@ -107,7 +106,7 @@ legend('peak 1 in element 1', 'peak 2 in element 1', 'peak 1 in element 2', 'pea
 title( 'Dictionary elements change over iterations' );
 xlabel( '# iteration' );
 ylabel( 'value' );
-load('WHist_expRec_v5.mat');
+load('WHist_expRec.mat');
 outMat2 = zeros( tIT_NUM, 2 );
 for i = 1:tIT_NUM
     outMat2(i, 1) = max( WHistCell{i}(1,:) );

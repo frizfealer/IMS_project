@@ -372,7 +372,8 @@ for it = 1:OUTER_IT_NUM
         resRecAry(itNumADMM, :) = [rfn2, epsPri, s0n2, epsDual];
         tmp = max( abs( relW(:) -  prevWADMM(:) ) );
         fprintf( '%d: %g %g %g %g %g %g\n',itNumADMM, rfn2, epsPri, s0n2, epsDual, curRhoAry(itNumADMM), full(tmp) );
-        if ( rfn2 < epsPri && s0n2 < epsDual ) &&...
+        % ALL conditions must be satisfied to have next big update
+        if ( rfn2 < epsPri && s0n2 < epsDual ) && ...
                 ( max( abs(rf(:)) ) < 1e-3 && max( abs(s0(:)) ) < 1e-3 ) && ...
                 ( tmp < 1e-3 )
             break;
@@ -476,6 +477,7 @@ for it = 1:OUTER_IT_NUM
         WHistCell{it+1} = outW;
         save( W_HIST_PATH, 'WHistCell' );
     end
+    % if AND all conditions, take too many iteration to converge
     if abs(LPAry(it+1)-LPAry(it)) <= 1e-6 || ...
         ( max( tmp1, tmp2 ) < 1e-3 &&  tmp3 < 1e-3 )
         break;

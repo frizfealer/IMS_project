@@ -1,3 +1,4 @@
+%% deprecated, this scripts can not generate clear results
 gD = eye(3); DTemplate = gD;
 SLEN = 3; MLEN = 3; IHEIGHT = 20; IWIDTH = 20;
 [ gW, gW0, usedElement ] = synthesizeW( MLEN, IHEIGHT, IWIDTH, 'diffusion', 1, [], 1, 1);
