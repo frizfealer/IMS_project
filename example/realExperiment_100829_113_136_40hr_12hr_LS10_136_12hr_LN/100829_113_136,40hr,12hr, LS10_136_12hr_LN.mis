@@ -1,0 +1,83 @@
+<ImagingSequence flexImagingVersion="2.0.29.0" last_modified="2010-08-29T22:59:45">
+<Comment/>
+<ResultDir/>
+<Method>EE_imagingPD_Harvard_LN_100825</Method>
+<ImageFile>100829_113_136,40hr,12hr, LS10_136_12hr_LN 003.jpg</ImageFile>
+<OriginalImage/>
+<FilterList/>
+<BaseGeometry>MSP 96</BaseGeometry>
+<AreaColor>#c08080</AreaColor>
+<RoiColor>#80c080</RoiColor>
+<SpotColor>#8080c0</SpotColor>
+<SystemType>7</SystemType>
+<ParentMass/>
+<BlendImgRgn>40</BlendImgRgn>
+<BlendImgRes>50</BlendImgRes>
+<GradientMode>0</GradientMode>
+<flexControlRunVersion>3.0.182.0</flexControlRunVersion>
+<View Zoom="0" CenterPos="2659,1352" ShowImage="1" ShowImage2="0" ShowAreas="1" ShowRois="1" ShowTeachPoints="1" ShowRuler="1" ShowIntensity="0" ShowSpots="0" ShowSamplePos="0" ShowSpectra="1"/>
+<AutoScanParameters>
+<MinMass>0</MinMass>
+<MaxMass>0</MaxMass>
+<WindowSize>0.5</WindowSize>
+<Overlap>0.1</Overlap>
+<MinPercent>10</MinPercent>
+<MaxPercent>100</MaxPercent>
+<MinRelIntens>0.2</MinRelIntens>
+</AutoScanParameters>
+<Preparation Mode="0"/>
+<SpotOffset>0,0</SpotOffset>
+<SpotDia>0</SpotDia>
+<WasRunInc>0</WasRunInc>
+<RunStep>2</RunStep>
+<ProcessingParameters>
+<DataSource>2</DataSource>
+<DataPoints>32000</DataPoints>
+<MinMass>0</MinMass>
+<MaxMass>0</MaxMass>
+<CacheData>0</CacheData>
+<CacheValid>0</CacheValid>
+<NormalizeSpectra>0</NormalizeSpectra>
+<NormalizeNoiseThreshold>0.5</NormalizeNoiseThreshold>
+</ProcessingParameters>
+<TeachPoint>3250,170;40781,35263</TeachPoint>
+<TeachPoint>2609,2396;30761,-445</TeachPoint>
+<TeachPoint>371,1186;-4727,18830</TeachPoint>
+<ReferencePoint>3250,170</ReferencePoint>
+<Area Type="3" Name="113_136_0-1XLB_40hr" Enabled="0" ShowSpectra="0" SpectrumColor="#993333">
+<Raster>800,800</Raster>
+<Method>EE_imagingPD_Harvard_LN_100825</Method>
+<Point>517,285</Point>
+<Point>772,232</Point>
+<Point>1157,199</Point>
+<Point>2371,221</Point>
+<Point>2610,247</Point>
+<Point>3180,528</Point>
+<Point>3135,749</Point>
+<Point>2019,824</Point>
+<Point>1277,809</Point>
+<Point>547,775</Point>
+<Point>528,292</Point>
+</Area>
+<Area Type="3" Name="113_136_0-1XLB_12hr" Enabled="0" ShowSpectra="0" SpectrumColor="#0000ff">
+<Raster>800,800</Raster>
+<Method>EE_imagingPD_Harvard_LN_100825</Method>
+<Point>648,1075</Point>
+<Point>865,1052</Point>
+<Point>2607,1052</Point>
+<Point>3079,1105</Point>
+<Point>3079,1498</Point>
+<Point>1959,1532</Point>
+<Point>678,1498</Point>
+<Point>637,1079</Point>
+</Area>
+<Area Type="3" Name="LS10_136_0-1XLB_12hr" Enabled="0" ShowSpectra="0" SpectrumColor="#00ff00">
+<Raster>800,800</Raster>
+<Method>EE_imagingPD_Harvard_LN_100825</Method>
+<Point>584,1723</Point>
+<Point>3228,1727</Point>
+<Point>3221,2131</Point>
+<Point>622,2169</Point>
+<Point>581,1719</Point>
+</Area>
+</ImagingSequence>

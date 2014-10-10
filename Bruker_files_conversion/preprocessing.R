@@ -1,6 +1,6 @@
-MALDI_IMS_preprocessing <- function( iPath, outputPath ) {
+MALDI_IMS_preprocessing <- function( iPath, outputPath, baseLineFlag ) {
 #usage:
-#e.g. inputFilePath = "D:\\Users\\YeuChern\\Dropbox\\unc\\CS\\RA\\Project_dictionaryLearning_IMS\\data\\2013_Bmyc_Paeni_Early_LP\\2013 Bmyc Paeni Early LP_nopp.mzML"
+#e.g. inputFilePath = "D:\\Users\\YeuChern\\Dropbox\\unc\\CS\\RA\\Project_dictionaryLearning_IMS\\data\\2013_Bmyc_Paeni_Early_LP\\2013_Bmyc_Paeni_Early_LP_nopp.mzML"
 #e.g. outputPath = "D:\\"
 	inFileName = basename( iPath );
 	#need MALDIquant and MALDIquantForeign libraries
@@ -127,7 +127,14 @@ MALDI_IMS_preprocessing <- function( iPath, outputPath ) {
 		#s2 <- transformIntensity(s1, method="sqrt")
 		# s3 <- smoothIntensity(s2, method="MovingAverage", halfWindowSize=2)
 		s3 <- smoothIntensity(s1, method="SavitzkyGolay", halfWindowSize=10)
-		s4 <- removeBaseline(s3, method="SNIP", iterations=100)
+		if( baseLineFlag == 1 )
+		{
+			s4 <- removeBaseline(s3, method="SNIP", iterations=100)
+		} 
+		else
+		{
+			s4 <- s3
+		}
 		# whether to use the original intensity or not
 		s[[i]] = s4;
 		p <- detectPeaks(s4, method="MAD", halfWindowSize=20, SNR=2)

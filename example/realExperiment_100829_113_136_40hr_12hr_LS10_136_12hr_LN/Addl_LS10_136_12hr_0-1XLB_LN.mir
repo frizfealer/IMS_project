@@ -1,0 +1,18 @@
+<ImagingResults flexImagingVersion="2.0.29.0" last_modified="2011-01-21T20:22:48">
+<Result Type="PkFilter" Name="136 distant halo" Color="#0000ff" Show="0" MinIntensity="0" IntensityThreshold="30" AbsIntens="1" MinMass="364.08808" MaxMass="364.78808" Integrate="0" FindMass="0" RelMass="0"/>
+<Result Type="PkFilter" Name="colony centers " Color="#0080ff" Show="0" MinIntensity="0.03" IntensityThreshold="0.17" AbsIntens="1" MinMass="992.5" MaxMass="993.5" Integrate="0" FindMass="0" RelMass="0"/>
+<Result Type="PkFilter" Name="136 esp close to LS10" Color="#c0c0c0" Show="0" MinIntensity="0.03" IntensityThreshold="0.2" AbsIntens="1" MinMass="469.3" MaxMass="470.3" Integrate="0" FindMass="0" RelMass="0"/>
+<Result Type="PkFilter" Name="Distant edge of 136" Color="#ff8080" Show="0" MinIntensity="0.03" IntensityThreshold="0.7" AbsIntens="1" MinMass="574.3" MaxMass="576.3" Integrate="0" FindMass="0" RelMass="0"/>
+<Result Type="PkFilter" Name="Less in interaction zone " Color="#8000ff" Show="0" MinIntensity="0.02" IntensityThreshold="0.15" AbsIntens="1" MinMass="765.3393" MaxMass="767.3393" Integrate="0" FindMass="0" RelMass="0"/>
+<Result Type="PkFilter" Name="huge colony halos" Color="#80ff00" Show="0" MinIntensity="0" IntensityThreshold="100" AbsIntens="0" MinMass="820.49161" MaxMass="822.49161" Integrate="0" FindMass="0" RelMass="0"/>
+<Result Type="PkFilter" Name="Colony halos, less 136 near LS10" Color="#ffff00" Show="0" MinIntensity="0" IntensityThreshold="1" AbsIntens="1" MinMass="814.70189" MaxMass="816.70189" Integrate="0" FindMass="0" RelMass="0"/>
+<Result Type="PkFilter" Name="Colony halos, less 136 near LS10 " Color="#8000ff" Show="0" MinIntensity="0" IntensityThreshold="0.3" AbsIntens="1" MinMass="798.30757" MaxMass="801.30757" Integrate="0" FindMass="0" RelMass="0"/>
+<Result Type="PkFilter" Name="Between colonies " Color="#ff8000" Show="0" MinIntensity="0" IntensityThreshold="1" AbsIntens="1" MinMass="842.36123" MaxMass="845.36123" Integrate="0" FindMass="0" RelMass="0"/>
+<Result Type="PkFilter" Name="" Color="#80ff00" Show="0" MinIntensity="0" IntensityThreshold="0.2" AbsIntens="1" MinMass="1242.3" MaxMass="1244.3" Integrate="0" FindMass="0" RelMass="0"/>
+<Result Type="PkFilter" Name="LS10 halos" Color="#8080ff" Show="0" MinIntensity="0.02" IntensityThreshold="0.15" AbsIntens="1" MinMass="1265" MaxMass="1269" Integrate="0" FindMass="0" RelMass="0"/>
+<Result Type="PkFilter" Name="Interaction zone" Color="#00ff00" Show="0" MinIntensity="0.015" IntensityThreshold="0.1" AbsIntens="1" MinMass="1294.52" MaxMass="1296.52" Integrate="0" FindMass="0" RelMass="0"/>
+<Result Type="PkFilter" Name="Interaction zone  " Color="#ffff00" Show="0" MinIntensity="0.015" IntensityThreshold="0.1" AbsIntens="1" MinMass="1316.3666" MaxMass="1320.3666" Integrate="0" FindMass="0" RelMass="0"/>
+<Result Type="PkFilter" Name="Interaction zone   " Color="#0080ff" Show="0" MinIntensity="0.02" IntensityThreshold="0.08" AbsIntens="1" MinMass="1330" MaxMass="1334" Integrate="0" FindMass="0" RelMass="0"/>
+<Result Type="PkFilter" Name="Interaction zone     " Color="#80ff80" Show="1" MinIntensity="0.01" IntensityThreshold="0.09" AbsIntens="1" MinMass="1344" MaxMass="1348" Integrate="0" FindMass="0" RelMass="0"/>
+<Result Type="PkFilter" Name="Interaction zone    " Color="#ff8080" Show="0" MinIntensity="0" IntensityThreshold="0.1" AbsIntens="1" MinMass="1307" MaxMass="1309" Integrate="0" FindMass="0" RelMass="0"/>
+</ImagingResults>
