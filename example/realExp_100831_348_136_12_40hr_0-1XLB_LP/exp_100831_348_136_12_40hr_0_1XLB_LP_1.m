@@ -1,10 +1,9 @@
-function [ expRec, gridVec ] = exp_100831_348_136_12_40hr_0_1XLB_LN_1()
+function [ expRec, gridVec ] = exp_100831_348_136_12_40hr_0_1XLB_LP_1()
 %% loading parameters
 addpath( genpath( '~/IMS_project-master' ) );
 addpath( genpath( '~/SLEP_package_4.1/SLEP' ) );
-IonTableFilePathNeg = '../molecule_profile_neg.csv';
-param.CLUSTER_NAME = 'killdevil1024'; %usually this is the default name
-param.CLUSTER_NUM = 64; %number of cluster uses, usually 12
+IonTableFilePathPos = '../molecule_profile_pos.csv';
+load('100831_348_136_12,40hr_0-1XLB_LP.mzML_dc.mat');
 
 %% trim data, only consdier m/z>=mzSmall and m/z <=mzLarge
 mzSmall = 500;
@@ -28,7 +27,7 @@ mzAxis = mzAxis(tsIdx:teIdx);
 [ BlkDS ] = conBLKDS( dataCube );
 
 %% trim data, only consider m/z channel has values larger then the value of  intThreshold accross all the grids
-intThreshold = 10;
+intThreshold = 100;
 ins = dataCube(:,:);
 ins = ins(:, BlkDS.indMap);
 tmp = zeros( size( ins, 1 ), 1 );
@@ -49,24 +48,26 @@ aMatrix = ones( IHEIGHT, IWIDTH );
 %% generate DTemplate
 %smallest molecule weight, set to H = 1.007
 %m/z error +/- 0.5
-[ nDTemplate, nDIonName, nSpeciesM ] = genDTemplate( mzAxis, IonTableFilePathNeg, 1.007, 0.5 );
+[ pDTemplate, pDIonName, pSpeciesM ] = genDTemplate( mzAxis, IonTableFilePathPos, 1.007, 0.5 );
 
 %% running dictionary learning
 lambda = 1e-6; phi = 1e-6; theta = 1e-6;
 snapPath = 'temp.mat';
 %setting up parameters
 [ param ] = setDLParameters();
-param.D_ION_NAME = nDIonName;
+param.CLUSTER_NAME = 'killdevil1024_1'; %usually this is the default name
+param.CLUSTER_NUM = 64; %number of cluster uses, usually 12
+param.D_ION_NAME = pDIonName;
 param.D_HIST_PATH = 'DHist_l_0_t_0_p_0.mat';
 param.W_HIST_PATH = 'WHist_l_0_t_0_p_0.mat';
-save( '100831_348_136_12_40hr_0_1XLB_LN_input.mat' );
+save( '100831_348_136_12_40hr_0_1XLB_LP_input.mat' );
 
 %% run an estimate of hyper parameters
-[ expRec ] = dictionaryLearning_ADMM_v5( dataCube, [], nDTemplate, [], lambda, theta, phi, aMatrix, BlkDS, [], snapPath, param );
-save( 'exp_100831_348_136_12_40hr_0_1XLB_LN_1_res.mat', 'expRec' );
+[ expRec ] = dictionaryLearning_ADMM_v5( dataCube, [], pDTemplate, [], lambda, theta, phi, aMatrix, BlkDS, [], snapPath, param );
+save( 'exp_100831_348_136_12_40hr_0_1XLB_LP_1_res.mat', 'expRec' );
 clear expRec
 [ elambda, etheta, ephi ] = estimateHypParam( expRec.outW, expRec.outD, nDTemplate, BlkDS );
-save( '100831_348_136_12_40hr_0_1XLB_LN_input.mat' );
+save( '100831_348_136_12_40hr_0_1XLB_LP_input.mat' );
 %%
 
 end
