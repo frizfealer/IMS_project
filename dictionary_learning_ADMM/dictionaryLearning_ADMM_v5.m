@@ -182,13 +182,13 @@ end
 % validMap = indMap .* aMatrix;
 % yy = inY(:, validMap==1);
 if LATE_UPDATE_FLAG == 1
-    [ rSet ] = estimateDRelevant( inY, outD, DTemplate, BlkDS.indMap, LATE_UPDATE_PERCENT, LATE_UPDATE_INTTHRES  );
+    [ rSet ] = estimateDRelevant( inY, outD, DTemplate, BlkDS.indMap, LATE_UPDATE_PERCENT, LATE_UPDATE_INTTHRES, D_ION_NAME  );
 end
 %% main program start
 MEAN_FLAG = 0;
 LPAry(1) = LP_DL_Poiss( aMatrix, inY, outW, outW0, outD, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
 fprintf( 'parameters: outer iteration number = %d, ', OUTER_IT_NUM );
-fprintf( 'ADMM iteration number = %d, Hessian flag for update D = %d, ', ADMM_IT_NUM, HES_FLAG );
+fprintf( 'ADMM iteration number = %d, D-update iteration number = %d, Hessian flag for update D = %d, ', ADMM_IT_NUM, UP_D_IT_NUM, HES_FLAG );
 fprintf( 'Cluster number used to update = %d, ', CLUSTER_NUM );
 fprintf( 'SAVE_TEM_PERIOUD = %d, Inner iteration reduce flag = %d, ', SAVE_TEM_PERIOD, INNER_IT_RED_FLAG );
 fprintf( 'LATE_UPDATE_FLAG = %d, LATE_UPDATE_PERCENT=%g, LATE_UPDATE_INTTHRES = %g, ', LATE_UPDATE_FLAG, LATE_UPDATE_PERCENT, LATE_UPDATE_INTTHRES  );
@@ -285,6 +285,7 @@ for it = 1:OUTER_IT_NUM
         expRec.LPAryADMM = LPAryADMM;
         expRec.theta = theta; expRec.lambda = lambda; expRec.phi = phi;
         expRec.diffW = tmp1; expRec.diffW0 = tmp2; expRec.diffD = tmp3;
+        expRec.param = param;
 %         expRec.rhoCell = rhoCell; expRec.resRecCell = resRecCell;
         save( snapFilePath, 'expRec' );
     end
@@ -294,10 +295,10 @@ for it = 1:OUTER_IT_NUM
     end
     if ~isempty( W_HIST_PATH )
         WHistCell{it+1} = outW;
-        save( W_HIST_PATH, 'WHistCell' );
+        save( W_HIST_PATH, 'WHistCell', '-v7.3' );
     end
-    % if AND all conditions, take too many iteration to converge
-    if abs(LPAry(it+1)-LPAry(it)) <= 1e-6 || ...
+    % ALL conditions must be satisfied to stop outer loops
+    if abs(LPAry(it+1)-LPAry(it)) <= 1e-6 && ...
         ( max( tmp1, tmp2 ) < 1e-3 &&  tmp3 < 1e-3 )
         break;
     end

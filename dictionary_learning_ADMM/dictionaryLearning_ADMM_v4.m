@@ -184,7 +184,7 @@ end
 % validMap = indMap .* aMatrix;
 % yy = inY(:, validMap==1);
 if LATE_UPDATE_FLAG == 1
-    [ rSet ] = estimateDRelevant( inY, outD, DTemplate, indMap, LATE_UPDATE_PERCENT, LATE_UPDATE_INTTHRES  );
+    [ rSet ] = estimateDRelevant( inY, outD, DTemplate, indMap, LATE_UPDATE_PERCENT, LATE_UPDATE_INTTHRES, D_ION_NAME  );
 end
 %% main program start
 MEAN_FLAG = 0;
@@ -249,7 +249,7 @@ for it = 1:OUTER_IT_NUM
     for itNumADMM = 1:M_ADMM_IT_NUM
         prevWADMM = relW;
         LPAryADMM(itNumADMM) = LP_DL_Poiss( aMatrix, inY, relW, outW0, relD, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
-        fprintf( 'LP: %g ', LPAryADMM(itNumADMM) );
+        fprintf( 'LP: %g ', full( LPAryADMM(itNumADMM) ) );
         tic
         curRho = curRhoAry(itNumADMM);
         fprintf( 'updating W...\t' );
