@@ -27,7 +27,8 @@ for i = 1:BlkDS.blkNum
     Rb(ins<2,:) = [];
     numSamDiff = numSamDiff + mLen * size( Rb, 1 );
 end
-theta = ( numSamDiff ) / ( sum( abs( Whminus(:) ) ) + sum( abs( Wwminus(:) ) ) );
+% theta = ( numSamDiff ) / ( sum( abs( Whminus(:) ) ) + sum( abs( Wwminus(:) ) ) );
+theta = ( numSamDiff ) / ( norm( Whminus(:), 2 ) + norm( Wwminus(:), 2 ) );
 %compute phi
 nNonZ = length( find( DTemplate == 1 ) );
 phi = nNonZ / sum( eD(:) );
