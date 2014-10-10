@@ -43,9 +43,10 @@ end
 %         end
 %     end
 % end
-firstTwoTermsMat = -Y(:, aMatrix).*preY(:, aMatrix) + exp( preY(:, aMatrix) );
+idx = aMatrix == 1;
+firstTwoTermsMat = -Y(:, idx).*preY(:, idx) + exp( preY(:, idx) );
 if ~isempty( logFY )
-    firstTwoTermsMat = firstTwoTermsMat - logFY(:, aMatrix);
+    firstTwoTermsMat = firstTwoTermsMat - logFY(:, idx);
 end
 if isempty( scaleFactor )
     scaleFactor = 1;
@@ -54,7 +55,7 @@ firstTwoTermsMat = firstTwoTermsMat * scaleFactor;
 firstTwoTerms = sum( sum( firstTwoTermsMat ) );
 % firstTwoTerms sum( Y(:).*z0(:) - exp(z0(:)) ) 
 val = firstTwoTerms + lambda * norm( W(:), 1 ) ...
-    + phi * norm( D(:), 1 ) + theta * ( norm( Whminus(:), 1 ) + norm( Wwminus(:), 1 ) );
+    + phi * norm( D(:), 1 ) + theta * ( norm( Whminus(:), 2 ) + norm( Wwminus(:), 2 ) ); %theta * ( norm( Whminus(:), 1 ) + norm( Wwminus(:), 1 ) );
 if length(varargin) == 1 && varargin{1} == 1 % meanFlag == 1
     meanVal = mean(firstTwoTermsMat(:) + lambda * norm( W(:), 1 ) ...
     + phi * norm( D(:), 1 ) + theta * ( norm( Whminus(:), 1 ) + norm( Wwminus(:), 1 ) ) );
