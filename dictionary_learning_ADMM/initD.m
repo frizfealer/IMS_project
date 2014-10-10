@@ -8,7 +8,7 @@ mLen = size( DTemplate, 2 );
 sLen = size( DTemplate, 1 );
 % thres = round( mLen*0.05 );
 thres = 10;
-outD = DTemplate;
+outD = zeros( size( DTemplate ) );
 if strcmp( method, 'random' ) == 1
     for i = 1:mLen
         cSpec =  DTemplate(:, i) ~= 0 ;
@@ -46,7 +46,17 @@ elseif strcmp( method, 'online-DL' ) == 1
 %     D = mexTrainDL( y,param );
 elseif strcmp( method, 'NNMF' ) == 1
         for i = 1:mLen
-            cSpec =  DTemplate(:, i) ~= 0 ;
+            cSpec =  find( DTemplate(:, i) ~= 0 );
+            if ~isempty( DIonName )
+                cIonName = DIonName{i};
+                ch2Idx = [];
+                for j = 1:length(cIonName)
+                    if ~isempty( strfind( cIonName{j}, 'CH2' ) )
+                        ch2Idx = [ch2Idx j];
+                    end
+                end
+                cSpec(ch2Idx) = [];
+            end
             ins = dataCube(cSpec, :);
             res = sum(ins, 1);
             [~,idx]= sort( res, 'descend' );
@@ -56,19 +66,21 @@ elseif strcmp( method, 'NNMF' ) == 1
             end
             if lowerIdx ~= 0
                 [w,h]=nnmf( ins(:,idx(1:lowerIdx)), 1 );
-                if isempty( DIonName )
-                    outD(cSpec, i) = w;
-                    outD(:, i) = outD(:, i)./ norm( outD(cSpec, i), 2 );
-                else
-                    cIonName = DIonName{i};
-                    for j = 1:length(cIonName)
-                        if ~isempty( strfind( cIonName{j}, 'CH2' ) )
-                            w(j) = 1e-3;
-                        end
-                    end
-                    outD(cSpec, i) = w;
-                    outD(:, i) = outD(:, i)./ max( norm( outD(cSpec, i), 2 ), 1 );
-                end
+%                 if isempty( DIonName )
+%                     outD(cSpec, i) = w;
+%                     outD(:, i) = outD(:, i)./ norm( outD(cSpec, i), 2 );
+%                 else
+%                     cIonName = DIonName{i};
+%                     for j = 1:length(cIonName)
+%                         if ~isempty( strfind( cIonName{j}, 'CH2' ) )
+%                             w(j) = 1e-3;
+%                         end
+%                     end
+%                     outD(cSpec, i) = w;
+%                     outD(:, i) = outD(:, i)./ max( norm( outD(cSpec, i), 2 ), 1 );
+%                 end
+                outD(cSpec, i) = w;
+                outD(:, i) = outD(:, i)./ norm( outD(cSpec, i), 2 );
             end
             
             %% display and debugging...
@@ -99,18 +111,18 @@ end
 
 end
 
-%% testing if CH2 is not initialze > 1e-3
+% % testing if CH2 is not initialze > 1e-3
 % for i = 1:size(pDTemplate, 2)
-% cIonName = pDIonName{i};
-% idx = find(pDTemplate(:,i)==1);
-% temp =[];
-% for j = 1:length(cIonName)
-% if ~isempty( strfind(cIonName{j}, 'CH2' ))
-% temp = [temp j];
-% end
-% end
-% ttt = find(D_init(idx, i) > 1e-3);
-% if ~isempty(intersect(ttt,temp))
-% fprintf( 'element %d\n', i );
-% end
+%     cIonName = pDIonName{i};
+%     idx = find(pDTemplate(:,i)==1);
+%     temp =[];
+%     for j = 1:length(cIonName)
+%         if ~isempty( strfind(cIonName{j}, 'CH2' ))
+%             temp = [temp j];
+%         end
+%     end
+%     ttt = find(D_init(idx, i) > 1e-3);
+%     if ~isempty(intersect(ttt,temp))
+%         fprintf( 'element %d\n', i );
+%     end
 % end
