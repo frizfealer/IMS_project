@@ -3,7 +3,8 @@ function [ expRec, gridVec ] = exp_100831_348_136_12_40hr_0_1XLB_LN_1()
 addpath( genpath( '~/IMS_project-master' ) );
 addpath( genpath( '~/SLEP_package_4.1/SLEP' ) );
 IonTableFilePathNeg = '../molecule_profile_neg.csv';
-load('100831_348_136_12,40hr_0-1XLB_LN.mzML_dc.mat');
+param.CLUSTER_NAME = 'killdevil1024'; %usually this is the default name
+param.CLUSTER_NUM = 64; %number of cluster uses, usually 12
 
 %% trim data, only consdier m/z>=mzSmall and m/z <=mzLarge
 mzSmall = 500;
@@ -55,8 +56,6 @@ lambda = 1e-6; phi = 1e-6; theta = 1e-6;
 snapPath = 'temp.mat';
 %setting up parameters
 [ param ] = setDLParameters();
-param.CLUSTER_NAME = 'killdevil1024_2'; %usually this is the default name
-param.CLUSTER_NUM = 64; %number of cluster uses, usually 12
 param.D_ION_NAME = nDIonName;
 param.D_HIST_PATH = 'DHist_l_0_t_0_p_0.mat';
 param.W_HIST_PATH = 'WHist_l_0_t_0_p_0.mat';
