@@ -2,6 +2,7 @@ function [ expRec, gridVec ] = exp_100831_348_136_12_40hr_0_1XLB_LN_1()
 %% loading parameters
 addpath( genpath( '~/IMS_project-master' ) );
 addpath( genpath( '~/SLEP_package_4.1/SLEP' ) );
+addpath( '~/Ipopt_3118' );
 IonTableFilePathNeg = '../molecule_profile_neg.csv';
 load('100831_348_136_12,40hr_0-1XLB_LN.mzML_dc.mat');
 
