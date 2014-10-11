@@ -98,12 +98,23 @@ fprintf( 'round-robinly choose possible dictionary elements...\n' );
 eleLimit = round( mLen*percent );
 rSet = [];
 rRecVec = ones( length(intEleVec), 1 );
-while length(rSet) < eleLimit
-    for i = 1:length(intEleVec)
-        cPEle = pEleList{i};
-        if rRecVec(i) <= length(cPEle)
-            rSet = unique( [rSet; cPEle(rRecVec(i))] );
-            rRecVec(i) = rRecVec(i) + 1;
+
+totalEleNum = 0;
+for i = 1:length(pEleList)
+    totalEleNum = totalEleNum + length( pEleList{i} );
+end
+if totalEleNum < eleLimit
+    for i = 1:length(pEleList)
+        rSet = unique( [rSet; pEleList{i}'] );
+    end
+else
+    while length(rSet) < eleLimit
+        for i = 1:length(intEleVec)
+            cPEle = pEleList{i};
+            if rRecVec(i) <= length(cPEle)
+                rSet = unique( [rSet; cPEle(rRecVec(i))] );
+                rRecVec(i) = rRecVec(i) + 1;
+            end
         end
     end
 end
