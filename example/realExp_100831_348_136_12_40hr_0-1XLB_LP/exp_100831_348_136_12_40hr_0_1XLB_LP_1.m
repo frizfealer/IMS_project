@@ -3,7 +3,6 @@ function [ expRec, gridVec ] = exp_100831_348_136_12_40hr_0_1XLB_LP_1()
 addpath( genpath( '~/IMS_project-master' ) );
 addpath( genpath( '~/SLEP_package_4.1/SLEP' ) );
 addpath( '~/Ipopt_3118' );
-IonTableFilePathPos = '../molecule_profile_pos.csv';
 load('100831_348_136_12,40hr_0-1XLB_LP.mzML_dc.mat');
 
 %% trim data, only consdier m/z>=mzSmall and m/z <=mzLarge
@@ -66,8 +65,8 @@ save( '100831_348_136_12_40hr_0_1XLB_LP_input.mat' );
 %% run an estimate of hyper parameters
 [ expRec ] = dictionaryLearning_ADMM_v5( dataCube, [], pDTemplate, [], lambda, theta, phi, aMatrix, BlkDS, [], snapPath, param );
 save( 'exp_100831_348_136_12_40hr_0_1XLB_LP_1_res.mat', 'expRec' );
+[ elambda, etheta, ephi ] = estimateHypParam( expRec.outW, expRec.outD, pDTemplate, BlkDS );
 clear expRec
-[ elambda, etheta, ephi ] = estimateHypParam( expRec.outW, expRec.outD, nDTemplate, BlkDS );
 save( '100831_348_136_12_40hr_0_1XLB_LP_input.mat' );
 %%
 
