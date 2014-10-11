@@ -66,8 +66,8 @@ save( '100831_348_136_12_40hr_0_1XLB_LN_input.mat' );
 %% run an estimate of hyper parameters
 [ expRec ] = dictionaryLearning_ADMM_v5( dataCube, [], nDTemplate, [], lambda, theta, phi, aMatrix, BlkDS, [], snapPath, param );
 save( 'exp_100831_348_136_12_40hr_0_1XLB_LN_1_res.mat', 'expRec' );
-clear expRec
 [ elambda, etheta, ephi ] = estimateHypParam( expRec.outW, expRec.outD, nDTemplate, BlkDS );
+clear expRec
 save( '100831_348_136_12_40hr_0_1XLB_LN_input.mat' );
 %%
 
