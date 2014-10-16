@@ -132,6 +132,11 @@ if isfield( param, 'D_ION_NAME' )
 else
     D_ION_NAME = [];
 end
+if isfield( param, 'LATE_UPDATE_IT_PREC' )
+    LATE_UPDATE_IT_PREC = param.LATE_UPDATE_IT_PREC;
+else
+    LATE_UPDATE_IT_PREC = 0.8;
+end
 
 LPAry = zeros( 1, OUTER_IT_NUM+1 );
 
@@ -208,7 +213,7 @@ for it = 1:OUTER_IT_NUM
         M_UP_D_IT_NUM = UP_D_IT_NUM;
     end
     if LATE_UPDATE_FLAG == 1
-        if it < floor(OUTER_IT_NUM*0.8)
+        if it < floor(OUTER_IT_NUM*LATE_UPDATE_IT_PREC)
             relD = outD(:, rSet);
             relW = outW(rSet, :);
             relZ1 = z1(rSet, :);
@@ -235,7 +240,7 @@ for it = 1:OUTER_IT_NUM
     resRecCell{it} = WResStruct.resAry;
     
     %% if W is too low, make corresponding D to zero
-    if LATE_UPDATE_FLAG == 1 && it < floor(OUTER_IT_NUM*0.8)
+    if LATE_UPDATE_FLAG == 1 && it < floor(OUTER_IT_NUM*LATE_UPDATE_IT_PREC)
         relDTemplate = DTemplate(:, rSet);
     else
         relDTemplate = DTemplate;
@@ -260,7 +265,7 @@ for it = 1:OUTER_IT_NUM
     end
 
     if LATE_UPDATE_FLAG == 1
-        if it < floor(OUTER_IT_NUM*0.8)
+        if it < floor(OUTER_IT_NUM*LATE_UPDATE_IT_PREC)
             outD(:, rSet) = relD;
             outW(rSet, :) = relW;
             z1(rSet, :) = relZ1;
