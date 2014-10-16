@@ -60,6 +60,40 @@ if strcmp( relation, 'hinder' ) == 1
     end
     [~,idxIns2] = sort(ins2,'ascend');
 end
+if strcmp( relation, 'Int' ) == 1
+    idxIns2 = (1:length(targetW))';
+end
+if strcmp( relation, 'left-right-profile' ) == 1
+    ins2 = zeros(length(targetW),1);
+    [HEI, WID] = size( expRec.outW0 );
+    for j = 1:BlkDS.blkNum
+        [I, J] = ind2sub( [HEI WID], BlkDS.B2GMap{j} );
+        bWID = max(J) - min(J);
+        middleCoord = ( min(J) + floor( bWID / 4 ) ):( min(J) + floor( bWID / 4 )*3-1 );
+        otherCoord = setdiff( min(J):max(J), middleCoord );
+        jmIdx = []; joIdx = [];
+        for i = 1:length(J)
+            if ~isempty( find( J(i) == middleCoord, 1 ) )
+                jmIdx = [jmIdx i];
+            end
+            if ~isempty( find( J(i) == otherCoord, 1 ) )
+                joIdx = [joIdx i];
+            end
+        end
+        mIdx{j} = jmIdx;
+        oIdx{j} = joIdx;
+    end
+    for j = 1:length(targetW)
+        for i = 1:BlkDS.blkNum
+             bW = outW(targetW(j), BlkDS.B2GMap{i});
+             temp = abs( max(bW(mIdx{i}))-max(bW(oIdx{i})) );
+             if ins2(j) < temp
+                 ins2(j) = temp;
+             end
+        end
+    end
+    [~,idxIns2] = sort(ins2,'descend');
+end
 
 idxIns2=idxIns2(1:outNum)';
 
