@@ -68,7 +68,7 @@ for j = 1:length(targetElement)
     xlabel( 'width' ); ylabel( 'height' );
     axis([h1 h2],'square')
     hhh=gcf; set(hhh,'pos', [1 41 1366 650] );
-    export_fig([ 'element#_', num2str(targetElement(j)), '_M_', num2str(SpeciesM(targetElement(j))), '_DictionaryElement.jpg']); close(hhh)
+    export_fig([ 'element#_', num2str(targetElement(j)), '_M_', num2str(SpeciesM(targetElement(j))), '_DictionaryElement.pdf'], '-transparent'); close(hhh)
     %hwplotprep
     %     orient landscape;
     %print ( '-dpdf', ['M_', num2str(round(SpeciesM(targetW(j)))), '_DictionaryElement'] );
