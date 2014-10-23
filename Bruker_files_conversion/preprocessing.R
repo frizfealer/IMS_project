@@ -9,6 +9,7 @@ MALDI_IMS_preprocessing <- function( iPath, outputPath, baseLineFlag ) {
 	# args <- commandArgs(trailingOnly = TRUE)
 	# iPath <- args[1]
 	#iPath="D:\\Users\\YeuChern\\Dropbox\\unc\\CS\\RA\\Project_dictionaryLearning_IMS\\data\\2013 Bmyc Paeni Early LP_nopp.mzML"
+	#s <- importMzMl(iPath, centroided=TRUE)
 	s <- importMzMl(iPath)
 	##check data availability
 	#check if there is any empty spectrum in the list
