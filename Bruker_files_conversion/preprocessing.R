@@ -170,44 +170,89 @@ MALDI_IMS_preprocessing <- function( iPath, outputPath, baseLineFlag ) {
 
 	#binning
 	writeLines( 'binning...' );
-	pMZLen = length( pMZ );
-	indVec = vector( mode="integer", length = pMZLen )
-	curPeakID = 1;
-	indVec[pMZLen] = curPeakID;
-	curLoc = pMZLen;
+	# pMZLen = length( pMZ );
+	# indVec = vector( mode="integer", length = pMZLen )
+	# curPeakID = 1;
+	# indVec[pMZLen] = curPeakID;
+	# curLoc = pMZLen;
+	# tol = 0.5;
+	# for( i in (pMZLen-1):1 )
+	# {
+		# if( abs( pMZ[i]-pMZ[curLoc] ) > tol )
+		# {
+			# curLoc = i;
+			# curPeakID = curPeakID + 1;
+			# indVec[i] = curPeakID;
+		# }else
+		# {
+			# indVec[i] = curPeakID;
+		# }
+	# } 
+	# mPMZ = vector( mode="numeric", length=curPeakID )
+	# cnt = 1;
+	# mPMZ[cnt] = pMZ[pMZLen];
+	# for ( i in (pMZLen-1):1 )
+	# {
+		# if( indVec[i]-indVec[i+1] == 1 )
+		# {
+			# cnt = cnt + 1;
+			# mPMZ[cnt] = pMZ[i];
+		# }
+	# } 
+	# mPMZ = sort( mPMZ );
+	# indVec = curPeakID - indVec + 1;
+	# mDataMatrix = matrix( 0, length(mPMZ), length(s) )
+	# for( i in 1:length(s) )
+	# {
+		# temp = tapply(dataMatrix[,i], indVec, max)
+		# mDataMatrix[,i]=temp
+	# }
+	ins = rowSums( dataMatrix );
+	dOrd = order( ins, decreasing=TRUE );
 	tol = 0.5;
-	for( i in (pMZLen-1):1 )
+	dPMZ = pMZ[dOrd];
+	mPMZ = vector( mode="integer", length = length(dPMZ) );
+	indVec = vector( mode="integer", length = length(dPMZ) );
+	curPeakID = 1
+	while( length(dPMZ) != 0 )
 	{
-		if( abs( pMZ[i]-pMZ[curLoc] ) > tol )
-		{
-			curLoc = i;
-			curPeakID = curPeakID + 1;
-			indVec[i] = curPeakID;
-		}else
-		{
-			indVec[i] = curPeakID;
-		}
-	} 
-	mPMZ = vector( mode="numeric", length=curPeakID )
-	cnt = 1;
-	mPMZ[cnt] = pMZ[pMZLen];
-	for ( i in (pMZLen-1):1 )
-	{
-		if( indVec[i]-indVec[i+1] == 1 )
-		{
-			cnt = cnt + 1;
-			mPMZ[cnt] = pMZ[i];
-		}
-	} 
+		print(curPeakID)
+		lMZ = dPMZ[1];
+		rMZ = dPMZ[which( dPMZ >= lMZ-tol & dPMZ <= lMZ+tol )];
+		rMZIdx = which( pMZ %in% rMZ );
+		indVec[rMZIdx] = curPeakID;
+		mPMZ[curPeakID] = lMZ;
+		curPeakID = curPeakID + 1;
+		
+		rDOrdSet = which( dPMZ %in% rMZ );
+		dPMZ = dPMZ[-rDOrdSet];
+	}
+	#checking, test function
+	# for( i in 1:max(indVec) )
+	# {
+		# tmp = which( indVec == i );
+		# if ( length(tmp) > 1 )
+		# {
+			# difference = diff(tmp) == 1;
+			# if( any(difference==FALSE) )
+			# {
+				# print(i)
+			# }
+		# }
+	# }
+	peakNum = max(indVec);
+	tmp = mPMZ;
+	mPMZ = vector( mode="integer", length = peakNum );
+	mPMZ = tmp[1:peakNum];
 	mPMZ = sort( mPMZ );
-	indVec = curPeakID - indVec + 1;
 	mDataMatrix = matrix( 0, length(mPMZ), length(s) )
+	tmp = unique(indVec);
 	for( i in 1:length(s) )
 	{
 		temp = tapply(dataMatrix[,i], indVec, max)
-		mDataMatrix[,i]=temp
+		mDataMatrix[,i]=temp[tmp];
 	}
-
+	
 	oFileName = paste( inFileName, "_data.csv", sep="" );
 	write.table(mDataMatrix, paste( outputPath, oFileName, sep="" ), row.names=FALSE, col.names=FALSE, sep=",")
 	oFileName = paste( inFileName, "_mz.csv", sep="" );
