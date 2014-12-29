@@ -1,5 +1,5 @@
 function [  ] = test_update_w_w0_v4( testCaseNum )
-%test_updatez0_v4 test function for updatez0_v4
+%test_updatez0_v4 test function for update_w_w0_v4
 if testCaseNum == 1
     %% synthesize data first
     SLEN = 10;
@@ -12,7 +12,7 @@ if testCaseNum == 1
     WOptions.sparsePrec = 1;
     verbose = 0;
     [simData] = synthesizeData_Poisson( SLEN, MLEN, HEIGHT, WIDTH, [], DOptions, WOptions, verbose );
-    %% test on updatez0_v4 function, no held out data
+    %% test on update_w_w0_v4 function, no held out data
     alpha = ones(HEIGHT, WIDTH);
     inY = simData.gY;
     BlkDS = conBLKDS(inY);
@@ -134,11 +134,11 @@ function [ val ] = w_w0_term_func( Z0, Z1, Z2, rho, gD, R, W, W0, U0, U1, U2 )
 %this function should be minimized.
 val1 = ( Z0 - gD*W - repmat(W0(:)', size(Z0, 1), 1) + 1/rho*U0 );
 val1 = norm( val1(:) );
-% val2 = ( Z1 - W + 1/rho*U1 );
-% val2 = norm( val2(:) );
-% val3 = ( Z2 - R*W' + 1/rho*U2 );
-% val3 = norm( val3(:) );
-val = val1;
+val2 = ( Z1 - W + 1/rho*U1 );
+val2 = norm( val2(:) );
+val3 = ( Z2 - R*W' + 1/rho*U2 );
+val3 = norm( val3(:) );
+val = val1+val2+val3;
 end
 
 function C = replicateC( inD, repNum )
