@@ -26,9 +26,7 @@ if testCaseNum == 1
     fVal = repmat(fVal', 1, 100);
     dfVal = zeros( 2, 100 );
     for lambda = 1:100
-        [ uZ1 ] = updatez1_v2( preZ1, U1, W, rho, lambda );
-        tmp = reshape( uZ1, MLEN, HEIGHT*WIDTH );
-        Z1 = tmp;
+        [ Z1 ] = updatez1_v2( preZ1, U1, W, rho, lambda );
         fVal(1, lambda) = Z1_term_func( W, preZ1, U1, rho, lambda );
         fVal(2, lambda) = Z1_term_func( W, Z1, U1, rho, lambda );
         dfVal(1, lambda) = length( find( abs( preZ1(:) ) >= 1e-3 ) );
@@ -55,9 +53,7 @@ elseif testCaseNum == 2
             curZ1 = Z1(:, loc);
             preZ1 = curZ1;
             curU1 = U1(:, loc);
-            [ uZ1 ] = updatez1_v2( preZ1, curU1, curW, curRho, lambda );
-            tmp = reshape( uZ1, size(curW, 1), length(loc) );
-            curZ1 = tmp;
+            [ curZ1 ] = updatez1_v2( preZ1, curU1, curW, curRho, lambda );
             fVal((j-1)*2+1, i) = Z1_term_func( curW, preZ1, curU1, curRho, lambda );
             fVal((j-1)*2+2, i) = Z1_term_func( curW, curZ1, curU1, curRho, lambda );
             dfVal((j-1)*2+1, i) = length( find( abs(preZ1(:)) >= 1e-3 ) );
