@@ -45,12 +45,13 @@ opts.lFalg = 1;
 % % w_w0 = x;
 options = glmnetSet;
 options.cl=[0;inf];
-options.nlambda=5;
-options.intr=true;
+% options.nlambda=5;
+options.lambda = [3 2 1 0];
+options.intr=0;
 options.standardize=0;
 options.thresh = 1e-16;
 options.lambda_min = 0;
-tic; fit = glmnet( CforUW,d, 'gaussian', options ); toc;
+fit = glmnet( CforUW,d, 'gaussian', options );
 w_w0 = fit.beta(:, end);
 
 end
