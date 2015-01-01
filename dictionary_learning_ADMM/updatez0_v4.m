@@ -30,6 +30,8 @@ elseif alphaFlag == 1
     end
     if length(varargin) == 2
         options.Method = varargin{2};
+    else
+        options.Method = 'newton';
     end
 %     lowerB = zeros(sLen,1);
 %     upperB = zeros(sLen,1); upperB(:) = Inf;
