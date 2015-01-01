@@ -13,6 +13,13 @@ for i = 1:BlkDS.blkNum
 end
 
 %% variable setting
+
+if ~isempty(varargin)
+    Wtol = varargin{2}; 
+else
+    Wtol = 1e-3;
+end
+
 fprintf( 'iteration number for W_update_ADMM = %d\n', itNum );
 temp = (aMatrix==0)&(BlkDS.indMap==1);
 fprintf( 'held-out sample number = %d, training sample number = %d\n', length( find( temp == 1 ) ), length( find( aMatrix == 1 ) ) );
@@ -29,7 +36,7 @@ if isempty( initVar )
     for i = 1:hei*wid
         %if is in data area, but not in training set,
         %set it to average spectrum
-        if BlkDS.indMap(i) && ~aMatrix(i)
+        if BlkDS.indMap(i) == 1 && aMatrix(i) == 0
             z0(:, i) = tmp;
         end
     end
@@ -43,12 +50,12 @@ else
     z0 = initVar.z0(:, :); z1 = initVar.z1(:, :); z2 = initVar.z2;
     W = initVar.W(:, :); W0 = initVar.W0(:, :);
 end
-scaleFactor =  1 / ( max( Y(:) ) / max( z0(:) ) ) * 100;
+scaleFactor =  1 / ( max( Y(:) ) / max( z0(:) ) );
 
 LPAryADMM = zeros( itNum+1, BlkDS.blkNum );
-resRecAry = zeros( itNum, 4 );
-curRhoAry = zeros( itNum, 1 );
-curRhoAry(1) = 1;
+resRecAry = zeros( itNum, 4, BlkDS.blkNum );
+curRhoAry = zeros( itNum, BlkDS.blkNum );
+curRhoAry(1, :) = 1;
 u0 = sparse( zeros( size( z0(:, :) ) ) );
 u1 = sparse( zeros( size( z1(:, :) ) ) );
 u2 = cell( BlkDS.blkNum, 1 );
@@ -80,8 +87,8 @@ for j = 1:BlkDS.blkNum
     for itNumADMM = 1:itNum
         tic;
         preW = curW;
-        fprintf( 'LP: %g ', LPAryADMM(itNumADMM) );
-        curRho = curRhoAry(itNumADMM);
+        fprintf( 'LP: %g ', LPAryADMM(itNumADMM, j) );
+        curRho = curRhoAry(itNumADMM, j);
         %% update W
         fprintf( 'updating W... ' );
         [ w_w0 ] = update_w_w0_v4( curZ0, curU0, curZ1, curU1, curZ2, curU2, CforUW, curRho, [curW; curW0(:)'] );
@@ -148,23 +155,23 @@ for j = 1:BlkDS.blkNum
         maxRel = max( [ norm( tmp(:) ), norm( u1(:) ), norm( tmp2(:) ) ] );
         epsDual = sqrt(nDim)*EPS_ABS + maxRel*EPS_REL;
         
-        resRecAry(itNumADMM, :) = [rf, epsPri, sf, epsDual];
+        resRecAry(itNumADMM, :, j) = [rf, epsPri, sf, epsDual];
         tmp = full( max( abs( curW(:) -  preW(:) ) ) );
-        fprintf( '%d: %g %g %g %g %g %g ',itNumADMM, rf, epsPri, sf, epsDual, curRhoAry(itNumADMM), full(tmp) );
+        fprintf( '%d: %g %g %g %g %g %g ',itNumADMM, rf, epsPri, sf, epsDual, curRhoAry(itNumADMM, j), full(tmp) );
         time = toc;
         fprintf( 'time: %g\n', time );        
         %% breaking condition
-        if ( rf < epsPri && sf < epsDual ) || ( tmp < 1e-3 )
+        if ( rf < epsPri && sf < epsDual ) || ( tmp < Wtol )
                 %( max( abs(rf(:)) ) < 1e-3 && max( abs(sf(:)) ) < 1e-3 ) || ...
             break;
         end
         %% update the next stage rho
         if rf > 10*sf
-            curRhoAry(itNumADMM+1) = 2 * curRhoAry(itNumADMM);
+            curRhoAry(itNumADMM+1, j) = 2 * curRhoAry(itNumADMM, j);
         elseif sf > 10*rf
-            curRhoAry(itNumADMM+1) = 0.5 * curRhoAry(itNumADMM);
+            curRhoAry(itNumADMM+1, j) = 0.5 * curRhoAry(itNumADMM, j);
         else
-            curRhoAry(itNumADMM+1) = curRhoAry(itNumADMM);
+            curRhoAry(itNumADMM+1, j) = curRhoAry(itNumADMM, j);
         end
         
         %% return the variables
@@ -196,10 +203,10 @@ WResStruct.z2 = z2;
 WResStruct.u0 = sparse(u0(:, :) );
 WResStruct.u1 = sparse(u1(:, :) );
 WResStruct.u2 = u2;
-WResStruct.LPAry = sparse( LPAryADMM );
-WResStruct.rhoAry = sparse( curRhoAry );
-WResStruct.resAry = sparse( resRecAry );
-WResStruct.WDiff = sparse( tmp );
+WResStruct.LPAry = LPAryADMM;
+WResStruct.rhoAry = curRhoAry;
+WResStruct.resAry = resRecAry;
+WResStruct.WDiff = tmp;
 if ~isempty(varargin) %WHistFlag == 1
     if varargin{1} == 1
         WResStruct.WHistCell = WHistCell;
