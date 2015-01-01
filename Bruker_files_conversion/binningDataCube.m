@@ -54,4 +54,5 @@ function [ mDataCube, mMZAxis, iii ] = binningDataCube( dataCube, mzAxis, BlkDS 
             mDataCube(curPeakID,i) = max(dataCube(startPos:endPos, i));
         end
     end
+    mDataCube = reshape( mDataCube, peakNum, hei, wid );
 end
