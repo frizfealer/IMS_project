@@ -1,4 +1,4 @@
-function [ finalD ] = updateD_v8_ipopt( inY, outW, outW0, D_init, DTemplate, aMatrix, HesOpt, phi, scaleFac, itNum )
+function [ finalD ] = updateD_v8_ipopt( inY, outW, outW0, D_init, DTemplate, aMatrix, HesOpt, phi, scaleFac, itNum, W_LOWER_BOUND )
 %updateD_v8 update the whole dictionary using fmincon without ADMM
 %aMatrix, a indicator matrix, with 1 means using in trainning and 0 means
 %using in testing
@@ -17,7 +17,7 @@ ins = zeros( mLen, 1 );
 for i = 1:mLen
     ins(i) = max( W(i, :) );
 end
-rMIdx = find( ins > 1e-3 );
+rMIdx = find( ins > W_LOWER_BOUND );
 rMLen = length( rMIdx );
 W = W( rMIdx, : );
 rD = full( D_init( :, rMIdx ) );
