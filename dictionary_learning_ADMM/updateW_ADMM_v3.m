@@ -1,4 +1,4 @@
-function [WResStruct] = updateW_ADMM_v3( Y, D, aMatrix, itNum, lambda, theta, L1Flag, logFY, initVar, varargin )
+function [WResStruct] = updateW_ADMM_v3( Y, D, aMatrix, itNum, lambda, theta, L1Flag, logFY, initVar, scaleFactor, varargin )
 
 %% construct metaData
 BlkDS = conBLKDS( Y );
@@ -14,10 +14,12 @@ end
 
 %% variable setting
 
-if ~isempty(varargin)
-    Wtol = varargin{2}; 
-else
-    Wtol = 1e-3;
+if ~isempty(varargin)  
+    if length(varargin) == 2
+        Wtol = varargin{2};
+    else
+        Wtol = 1e-3;
+    end
 end
 
 fprintf( 'iteration number for W_update_ADMM = %d\n', itNum );
@@ -50,7 +52,6 @@ else
     z0 = initVar.z0(:, :); z1 = initVar.z1(:, :); z2 = initVar.z2;
     W = initVar.W(:, :); W0 = initVar.W0(:, :);
 end
-scaleFactor =  1 / ( max( Y(:) ) / max( z0(:) ) );
 
 LPAryADMM = zeros( itNum+1, BlkDS.blkNum );
 resRecAry = zeros( itNum, 4, BlkDS.blkNum );
@@ -85,7 +86,7 @@ for j = 1:BlkDS.blkNum
     RforUW = genSparseGroupingMatrix2( cRblk, mLen, 1 );
     CforUW = rowCombSparseMatrix( CforUW, RforUW );
     for itNumADMM = 1:itNum
-        tic;
+%         tic;
         preW = curW;
         fprintf( 'LP: %g ', LPAryADMM(itNumADMM, j) );
         curRho = curRhoAry(itNumADMM, j);
@@ -157,9 +158,9 @@ for j = 1:BlkDS.blkNum
         
         resRecAry(itNumADMM, :, j) = [rf, epsPri, sf, epsDual];
         tmp = full( max( abs( curW(:) -  preW(:) ) ) );
-        fprintf( '%d: %g %g %g %g %g %g ',itNumADMM, rf, epsPri, sf, epsDual, curRhoAry(itNumADMM, j), full(tmp) );
-        time = toc;
-        fprintf( 'time: %g\n', time );        
+        fprintf( '%d: %g %g %g %g %g %g \n',itNumADMM, rf, epsPri, sf, epsDual, curRhoAry(itNumADMM, j), full(tmp) );
+%         time = toc;
+%         fprintf( 'time: %g\n', time );        
         %% breaking condition
         if ( rf < epsPri && sf < epsDual ) || ( tmp < Wtol )
                 %( max( abs(rf(:)) ) < 1e-3 && max( abs(sf(:)) ) < 1e-3 ) || ...
