@@ -22,8 +22,8 @@ for i = 1:BlkDS.blkNum
         endWid = max(J) - 2;
         wLen = endWid - startWid + 1;
         hLen = round( 2*loLen / wLen );
-        startHei = ceil( (max(I)-min(I))/2 ) - floor(hLen/2);
-        endHei = ceil( (max(I)-min(I))/2 ) + floor(hLen/2);
+        startHei = ceil( (max(I)-min(I))/2 )+min(I) - floor(hLen/2);
+        endHei = ceil( (max(I)-min(I))/2 )+min(I) + floor(hLen/2);
         assert( startHei >= min(I) ); assert( endHei <= max(I) );
     end
     cMat = checkerboard_1( hLen,  wLen );
