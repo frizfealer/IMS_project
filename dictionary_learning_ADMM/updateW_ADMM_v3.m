@@ -20,6 +20,8 @@ if ~isempty(varargin)
     else
         Wtol = 1e-3;
     end
+else
+    Wtol = 1e-3;
 end
 
 fprintf( 'iteration number for W_update_ADMM = %d\n', itNum );
