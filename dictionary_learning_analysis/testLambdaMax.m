@@ -1,5 +1,5 @@
 function [ dfVec, lambdaVec ] = testLambdaMax( Y, D, startVal, intVal, intThres, testNum, seq, w_tol )
-%testLambdaLimit test lambda max
+%testLambdaMax test lambda max
 if ~isempty(seq)
     lambdaVec = seq;
 else
@@ -17,7 +17,8 @@ for i = 1:length(lambdaVec)
     L1Flag = 1;
     logFY = [];
     initVar = [];
-    [WResStruct] = updateW_ADMM_v3( Y, D, aMatrix, itNum, lambda, theta, L1Flag, logFY, initVar, 0, w_tol );
+    scaleFactor = computeScaleFactor( Y, aMatrix );
+    [WResStruct] = updateW_ADMM_v3( Y, D, aMatrix, itNum, lambda, theta, L1Flag, logFY, initVar, scaleFactor, 0, w_tol );
     BlkDS = conBLKDS( Y );
     %figure; subplot(1, 2, 1); plot(WResStruct.LPAry(:, 1)); subplot(1, 2, 2); plot(WResStruct.LPAry(:, 2) );
     ins = WResStruct.W(:, BlkDS.indMap == 1 );
@@ -25,9 +26,9 @@ for i = 1:length(lambdaVec)
     for j = 1:size(ins, 1);
         tmp(j) = max(ins(j, :));
     end
-    figure;plot(tmp)
+    %figure;plot(tmp)
     dfVec(i) = length(find(tmp>intThres));
-    save( 'testLambdaMax_temp.mat', 'dfVec', 'lambdaVec' );
+    %save( 'testLambdaMax_temp.mat', 'dfVec', 'lambdaVec' );
 end
 
 end
