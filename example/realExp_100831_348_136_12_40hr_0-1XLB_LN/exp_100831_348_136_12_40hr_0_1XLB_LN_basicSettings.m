@@ -45,8 +45,8 @@ mzAxis = mzAxis(tIdx);
 %then there is no leave-out
 %aMatrix: a logical matrix, as the same size of the grid, with 1 means the
 %grids used in training process, and 0 means in testing process
-aMatrix = ones( IHEIGHT, IWIDTH );
-
+% aMatrix = ones( IHEIGHT, IWIDTH );
+[ aMatrix ] = leaveoutCBPatternsData( BlkDS, 10 );
 %% generate DTemplate
 IonTableFilePathNeg = 'D:\Users\YeuChern\GitHub\IMS_project\example\molecule_profile_neg.csv';
 %smallest molecule weight, set to H = 1.007
