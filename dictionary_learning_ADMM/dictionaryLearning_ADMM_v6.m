@@ -245,7 +245,7 @@ for it = 1:OUTER_IT_NUM
         expRec.LPAry = LPAry; expRec.z0 = z0; expRec.z1 = z1; expRec.z2 = z2;
         expRec.theta = theta; expRec.lambda = lambda; expRec.phi = phi;
         expRec.diffW = tmp1; expRec.diffW0 = tmp2; expRec.diffD = tmp3;
-        expRec.param = param;
+        expRec.param = param; expRec.aMatrix = aMatrix;
 %         expRec.rhoCell = rhoCell; expRec.resRecCell = resRecCell;
         save( snapFilePath, 'expRec' );
     end
@@ -270,7 +270,7 @@ expRec.D = D; expRec.W = W; expRec.W0 = W0;
 expRec.LPAry = LPAry; expRec.z0 = z0; expRec.z1 = z1; expRec.z2 = z2;
 expRec.theta = theta; expRec.lambda = lambda; expRec.phi = phi; 
 expRec.diffW = tmp1; expRec.diffW0 = tmp2; expRec.diffD = tmp3;
-expRec.param = param;
+expRec.param = param; expRec.aMatrix = aMatrix;
 %expRec.rhoCell = rhoCell; expRec.resRecCell = resRecCell;
 
 end
