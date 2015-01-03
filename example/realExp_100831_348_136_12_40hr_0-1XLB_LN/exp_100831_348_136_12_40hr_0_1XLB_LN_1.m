@@ -31,11 +31,15 @@ mzAxis = mzAxis(tsIdx:teIdx);
 intThreshold = 10;
 ins = dataCube(:,:);
 ins = ins(:, BlkDS.indMap);
-tmp = zeros( size( ins, 1 ), 1 );
-for i = 1:length(tmp)
-    tmp(i) = max( ins(i, :) );
+tmpMax = zeros( size( ins, 1 ), 1 );
+tmpMean = zeros( size(ins, 1 ), 1 );
+tmpStd = zeros( size(ins, 1), 1 );
+for i = 1:length(tmpMax)
+    tmpMax(i) = max( ins(i, :) );
+    tmpMean(i) = mean( ins(i, :) );
+    tmpStd(i) = std( ins(i, :) );
 end
-tIdx = find(tmp>=intThreshold);
+tIdx = find(tmpMax>=intThreshold);
 dataCube = dataCube(tIdx, :, :);
 mzAxis = mzAxis(tIdx);
 
