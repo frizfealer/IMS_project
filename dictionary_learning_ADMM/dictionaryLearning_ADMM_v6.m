@@ -141,6 +141,11 @@ if isfield( param, 'D_TOL' )
 else
     D_TOL = 1e-3;
 end
+if isfield( param, 'D_lOWERBOUND' )
+    D_LOWER_BOUND = param.D_LOWER_BOUND;
+else
+    D_LOWER_BOUND = 1e-2;
+end
 
 LPAry = zeros( 1, OUTER_IT_NUM+1 );
 
