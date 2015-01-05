@@ -95,14 +95,14 @@ elseif testCaseNum == 3
     [~, hei, wid] = size(dataCube);
     aMatrix = ones( hei, wid );
     itNum = 100;
-    lambda = 0;
+    lambda = 10;
     theta = 1e-32;
     L1Flag = 1;
     logFY = [];
     initVar = [];
-    [ scaleFactor ] = computeScaleFactor( dataCube, aMatrix );
+    [ scaleFactor ] = computeScaleFactor( dataCube, aMatrix ); scaleFactor = scaleFactor * 1000;
     iD = initD( dataCube, nDTemplate, 'NNMF', nDIonName );
-    [WResStruct] = updateW_ADMM_v3( dataCube, iD, aMatrix, itNum, lambda, theta, L1Flag, logFY, initVar, scaleFactor, 0, 5*1e-2 );
+    [WResStruct] = updateW_ADMM_v3( dataCube, iD, aMatrix, itNum, lambda, theta, L1Flag, logFY, initVar, scaleFactor, 0, 5*1e-2, 1e-2 );
     figure; subplot(1, 2, 1); plot(WResStruct.LPAry(:, 1)); subplot(1, 2, 2); plot(WResStruct.LPAry(:, 2) );
     ins = WResStruct.W(:, BlkDS.indMap == 1 );
     tmp = zeros( size(ins, 1), 1);

@@ -3,6 +3,7 @@ function [WResStruct] = updateW_ADMM_v3( Y, D, aMatrix, itNum, lambda, theta, L1
 %% construct metaData
 BlkDS = conBLKDS( Y );
 [sLen, hei, wid] = size( Y );
+% nLen = hei*wid;
 [Rall] = genSparseGroupingMatrix( hei, wid, 1 );
 for i = 1:BlkDS.blkNum
     Rblk{i} = [];
@@ -13,24 +14,34 @@ for i = 1:BlkDS.blkNum
 end
 
 %% variable setting
-
 if ~isempty(varargin)  
     if length(varargin) == 2
         Wtol = varargin{2};
+        D_LOWER_BOUND = varargin{3};
     else
         Wtol = 1e-3;
+        D_LOWER_BOUND = 1e-2;
     end
 else
     Wtol = 1e-3;
+    D_LOWER_BOUND = 1e-2;
 end
 
 fprintf( 'iteration number for W_update_ADMM = %d\n', itNum );
 temp = (aMatrix==0)&(BlkDS.indMap==1);
 fprintf( 'held-out sample number = %d, training sample number = %d\n', length( find( temp == 1 ) ), length( find( aMatrix == 1 ) ) );
 fprintf( 'lambda = %d, theta = %d\n', lambda, theta );
+%% modifying D
 mLen = size(D, 2);
+ins = zeros( mLen, 1 );
+for i = 1:mLen
+    ins(i) = max( D(:,i) );
+end
+rMIdx = find( ins > D_LOWER_BOUND );
+D = D(:, rMIdx);
+oMLen = mLen;
+mLen = length( rMIdx );
 %% initializing z0 as log(inY)
-
 if isempty( initVar )
     z0 = log(Y); z0(z0==-inf)=0; %initialize zo as log(Y)
     %if not in traing set, we shoud not initialize z0 according to it.
@@ -50,20 +61,31 @@ if isempty( initVar )
         z2{i} = zeros( length(Rblk{i}), mLen );
     end
     W = zeros( mLen, wid*hei ); W0 = zeros( hei, wid );
+    %construct a initVar variable
+    initVar.z0 = z0; initVar.z1 = zeros( oMLen, wid*hei );
+    for i = 1:BlkDS.blkNum
+        initVar.z2{i} = zeros( length(Rblk{i}), oMLen );
+    end
+    initVar.W = zeros( oMLen, wid*hei ); initVar.W0 = zeros( hei, wid );
 else
-    z0 = initVar.z0(:, :); z1 = initVar.z1(:, :); z2 = initVar.z2;
-    W = initVar.W(:, :); W0 = initVar.W0(:, :);
+    z0 = initVar.z0(:, :); z1 = initVar.z1(rMIdx, :); 
+    W = initVar.W(rMIdx, :); W0 = initVar.W0;
+    z2 = cell( BlkDS.blkNum, 1 );
+    for i = 1:BlkDS.blkNum
+        z2{i} = initVar.z2(:, rMIdx);
+    end
 end
 
 LPAryADMM = zeros( itNum+1, BlkDS.blkNum );
 resRecAry = zeros( itNum, 4, BlkDS.blkNum );
 curRhoAry = zeros( itNum, BlkDS.blkNum );
 curRhoAry(1, :) = 1;
-u0 = sparse( zeros( size( z0(:, :) ) ) );
-u1 = sparse( zeros( size( z1(:, :) ) ) );
-u2 = cell( BlkDS.blkNum, 1 );
+u0 = sparse( zeros( size( z0(:, :) ) ) ); initVar.u0 = u0;
+u1 = sparse( zeros( size( z1(:, :) ) ) ); initVar.u1 = sparse( zeros( oMLen, wid*hei ) );
+u2 = cell( BlkDS.blkNum, 1 ); initVar.u2 = cell( BlkDS.blkNum, 1 );
 for i = 1:BlkDS.blkNum
     u2{i} = sparse( zeros( size( z2{i}(:, :) ) ) );
+    initVar.u2{i} = sparse( zeros( length(Rblk{i}), oMLen ) );
 end
 
 moutD = [D ones(sLen, 1)];
@@ -198,14 +220,20 @@ for j = 1:BlkDS.blkNum
 
     end
 end
-WResStruct.W = sparse( W );
-WResStruct.W0 = sparse( W0 );
-WResStruct.z0 = sparse( z0(:, :) );
-WResStruct.z1 = sparse( z1(:, :) );
-WResStruct.z2 = z2;
-WResStruct.u0 = sparse(u0(:, :) );
-WResStruct.u1 = sparse(u1(:, :) );
-WResStruct.u2 = u2;
+initVar.W(rMIdx, :) = W; WResStruct.W = sparse( initVar.W );
+initVar.W0 = W0; WResStruct.W0 = sparse( initVar.W0 );
+initVar.z0 = z0; WResStruct.z0 = sparse( initVar.z0(:, :) );
+initVar.z1(rMIdx, :) = z1; WResStruct.z1 = sparse( initVar.z1(:, :) );
+for i = 1:BlkDS.blkNum
+    initVar.z2{i}(:, rMIdx) = z2{i};
+end
+WResStruct.z2 = initVar.z2;
+initVar.u0 = u0; WResStruct.u0 = sparse( initVar.u0(:, :) );
+initVar.u1(rMIdx, :) = u1; WResStruct.u1 = sparse( initVar.u1(:, :) );
+for i = 1:BlkDS.blkNum
+    initVar.u2{i}(:, rMIdx) = u2{i};
+end
+WResStruct.u2 = initVar.u2;
 WResStruct.LPAry = LPAryADMM;
 WResStruct.rhoAry = curRhoAry;
 WResStruct.resAry = resRecAry;
