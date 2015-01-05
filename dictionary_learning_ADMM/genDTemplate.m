@@ -41,14 +41,15 @@ for i = 1:length(inMolMZ)
         end
 end
 MVec = sort(MVec);
-curPos = 1;
-mMVec = MVec(curPos);
-for i = 2:length(MVec)
-    if MVec(i) - MVec(curPos) > errRange
-        curPos = i;
-        mMVec = [mMVec MVec(i)];
-    end  
-end
+% curPos = 1;
+% mMVec = MVec(curPos);
+% for i = 2:length(MVec)
+%     if MVec(i) - MVec(curPos) > errRange
+%         curPos = i;
+%         mMVec = [mMVec MVec(i)];
+%     end  
+% end
+mMVec = MVec;
 
 speciesM = [];
 DTemplate = [];
@@ -74,7 +75,7 @@ for i = 1:length(mMVec)
         %get the lower index in DTemplate we should compare for the newest
         %one
         lowerM = mMVec(find( mMVec >= tmp, 1 ));
-        lowerIdx = find( speciesM >= lowerM );
+        lowerIdx = min(find( speciesM >= lowerM ));
         for k = size( DTemplate, 2 ):-1:lowerIdx
             tmp = DTemplate(:, k) - curTem;
             ins = sum(abs(tmp));
@@ -92,35 +93,35 @@ for i = 1:length(mMVec)
     end
 end
 
-fprintf( 'computing redundancy in the DTemplate...\n' );
-%redundent is defined as:
-% A:[1 1 0 0]
-% B:[1 1 1 0]
-% A is redudent of B.
-redunVec = zeros( size( DTemplate, 2 ), 1 );
-% recVec = zeros( size(DTemplate, 2), 1);
-for i = 1:size(DTemplate, 2)
-    cSet = DTemplate(:,i);
-    for j = i:size(DTemplate, 2)
-        tmp = cSet - DTemplate(:,j);
-        if max(tmp)-min(tmp)==1 && min(tmp) == -1
-            redunVec(i) = 1;
-%             recVec(i) = j;
-            break;
-        end
-    end
-end
-tmp = DIonName;
-DIonName = {};
-cnt = 1;
-for i = 1:length(tmp)
-    if redunVec(i) == 0
-        DIonName{cnt} = tmp{i};
-        cnt = cnt + 1;
-    end
-end
-DTemplate = DTemplate(:, redunVec==0);
-speciesM = speciesM(redunVec == 0);
+% fprintf( 'computing redundancy in the DTemplate...\n' );
+% %redundent is defined as:
+% % A:[1 1 0 0]
+% % B:[1 1 1 0]
+% % A is redudent of B.
+% redunVec = zeros( size( DTemplate, 2 ), 1 );
+% % recVec = zeros( size(DTemplate, 2), 1);
+% for i = 1:size(DTemplate, 2)
+%     cSet = DTemplate(:,i);
+%     for j = i:size(DTemplate, 2)
+%         tmp = cSet - DTemplate(:,j);
+%         if max(tmp)-min(tmp)==1 && min(tmp) == -1
+%             redunVec(i) = 1;
+% %             recVec(i) = j;
+%             break;
+%         end
+%     end
+% end
+% tmp = DIonName;
+% DIonName = {};
+% cnt = 1;
+% for i = 1:length(tmp)
+%     if redunVec(i) == 0
+%         DIonName{cnt} = tmp{i};
+%         cnt = cnt + 1;
+%     end
+% end
+% DTemplate = DTemplate(:, redunVec==0);
+% speciesM = speciesM(redunVec == 0);
 % for i = 1:length(inMolMZ)
 %     fprintf( 'm/z %g\n', inMolMZ(i));
 %     for j = 1:length(mpAry)
