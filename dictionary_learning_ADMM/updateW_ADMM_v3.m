@@ -72,7 +72,7 @@ else
     W = initVar.W(rMIdx, :); W0 = initVar.W0;
     z2 = cell( BlkDS.blkNum, 1 );
     for i = 1:BlkDS.blkNum
-        z2{i} = initVar.z2(:, rMIdx);
+        z2{i} = initVar.z2{i}(:, rMIdx);
     end
 end
 
