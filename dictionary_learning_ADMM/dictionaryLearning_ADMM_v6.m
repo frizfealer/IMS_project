@@ -221,7 +221,7 @@ for it = 1:OUTER_IT_NUM
     end
     %the second to the last parameter is a flag for each W output in ADMM steps
     %the last parameter is the tolerance of w in ADMM steps
-    uW_Res = updateW_ADMM_v3( inY, D, aMatrix, M_ADMM_IT_NUM, lambda, theta, USE_L1_FLAG, logFY, curVar, scaleFactor, 0, 1e-2 );
+    uW_Res = updateW_ADMM_v3( inY, D, aMatrix, M_ADMM_IT_NUM, lambda, theta, USE_L1_FLAG, logFY, curVar, scaleFactor, 0, 1e-2, D_LOWER_BOUND );
     W = uW_Res.W;
     W0 = uW_Res.W0;
     z0 = uW_Res.z0; z1 = uW_Res.z1; z2 = uW_Res.z2;
