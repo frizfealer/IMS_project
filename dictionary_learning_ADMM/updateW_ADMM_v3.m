@@ -14,13 +14,17 @@ for i = 1:BlkDS.blkNum
 end
 
 %% variable setting
+newWInfo = [];
 if ~isempty(varargin)  
-    if length(varargin) == 2
+    if length(varargin) == 3
         Wtol = varargin{2};
         D_LOWER_BOUND = varargin{3};
     else
         Wtol = 1e-3;
         D_LOWER_BOUND = 1e-2;
+    end
+    if length(varargin) == 4
+        newWInfo = varargin{4};
     end
 else
     Wtol = 1e-3;
@@ -41,6 +45,13 @@ rMIdx = find( ins > D_LOWER_BOUND );
 D = D(:, rMIdx);
 oMLen = mLen;
 mLen = length( rMIdx );
+if ~isempty( newWInfo )
+    for i = 1:length(newWInfo)
+        if BlkDS.indMap(i) == 1
+            newWInfo{i} = intersect( newWInfo{i}, rMIdx );
+        end
+    end
+end
 %% initializing z0 as log(inY)
 if isempty( initVar )
     z0 = log(Y); z0(z0==-inf)=0; %initialize zo as log(Y)
@@ -107,8 +118,12 @@ for j = 1:BlkDS.blkNum
     curU2 = u2{j};
     cRblk = Rblk{j};
     CforUW = replicateC( aPartofCforUW, length(loc) );
+    nrPart1 = size(CforUW, 1);
     RforUW = genSparseGroupingMatrix2( cRblk, mLen, 1 );
     CforUW = rowCombSparseMatrix( CforUW, RforUW );
+    if ~isempty(newWInfo)
+        [CforUW, target] =  modifyCWithSparsity( CforUW, newWInfo, loc, mLen+1, nrPart1 );
+    end
     for itNumADMM = 1:itNum
 %         tic;
         preW = curW;
@@ -286,3 +301,24 @@ function C = rowCombSparseMatrix( A, B )
     end
 end
 
+function [C, target] = modifyCWithSparsity( CforUW, newWInfo, loc, mLen, nrPart1 )
+    for i = 1:length(loc)
+        cLoc = loc(i);
+        cW = newWInfo{cLoc};
+        cW = cW+(i-1)*mLen;
+        cWRange = (1+(i-1)*mLen):(i*mLen);
+        target = setdiff(cWRange, cW);
+        CforUW(1:nrPart1, target) = 0;
+    end
+    [a, b] = find( CforUW((nrPart1+1):size(CforUW, 1), :)' ~= 0 );
+    target = [];
+    for i = 1:2:length(a)
+        [q, r] = ind2sub([mLen, length(loc)], a(i:(i+1)) );
+        if isempty( find( newWInfo{loc(r(1))} == q(1), 1 ) ) || isempty( find( newWInfo{loc(r(2))} == q(2), 1 ) )
+            target = [ target b(i)];
+        end
+    end
+    target = target + nrPart1;
+    CforUW( target, :) = 0;
+    C = CforUW;
+end
