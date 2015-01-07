@@ -19,6 +19,7 @@ param.W_HIST_PATH = [];
 param.D_ION_NAME = [];
 param.W_LOWER_BOUND = 1e-2;
 param.D_LOWER_BOUND = 1e-2;
+param.newWInfo = [];
 param.LP_TOL = 1e-6;
 param.W_TOL = 1e-3;
 param.D_TOL = 1e-3;
