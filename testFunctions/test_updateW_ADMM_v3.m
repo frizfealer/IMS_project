@@ -145,7 +145,41 @@ elseif testCaseNum == 4
     [ scaleFactor ] = computeScaleFactor( dataCube, aMatrix ); scaleFactor = scaleFactor * 1;
     %iD = initD( dataCube, newDTemplate, 'NNMF', newDIonName );
     [WResStruct] = updateW_ADMM_v3( dataCube, uD, aMatrix, itNum, lambda, theta, L1Flag, logFY, initVar, scaleFactor, 0, 5*1e-2, 1e-2, uWInfo );
+elseif testCaseNum == 5
+    %% synthesize data firs
+    SLEN = 10;
+    MLEN = 10;
+    HEIGHT = 20;
+    WIDTH = 20;
+    DOptions.sparsePrec = 1;
+    DOptions.coheMax = 1;
+    WOptions.supPrec = 1;
+    WOptions.sparsePrec = 1;
+    verbose = 0;
+    [simData] = synthesizeData_Poisson( 'identity', SLEN, MLEN, HEIGHT, WIDTH, [], DOptions, WOptions, verbose );
+    aMatrix = ones( HEIGHT, WIDTH );
+    %% itNum = 100
+    itNum = 1000;
+    lambda = 1e-1;
+    theta =1e-1;
+    L1Flag = 0;
+    logFY = [];
+    initVar = [];
+    scaleFactor = 1;
+    newWInfo = [];
+    [WResStruct] = updateW_ADMM_v3( 'identity', simData.gY, simData.gD, aMatrix, itNum, lambda, theta, L1Flag, logFY, initVar,  scaleFactor, 0, 1e-2, 1e-4  );
+    for j = 1:2
+        figure;
+        for i = 1:5
+            cW = WResStruct.W;
+            gW = simData.gW;
+            subplot(2, 5, i); imagesc( reshape(cW(i*j, :), HEIGHT, WIDTH ) ); colorbar;
+            subplot(2, 5, i+5); imagesc( reshape( gW(i*j, :), HEIGHT, WIDTH) ); colorbar;
+        end
+    end
 end
+    
+    
 
 end
 
