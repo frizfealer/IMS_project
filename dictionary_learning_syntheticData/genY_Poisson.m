@@ -1,4 +1,4 @@
-function [ gY ] = genY_Poisson( gD, gW, gW0 )
+function [ gY ] = genY_Poisson( LINK_FUNC, gD, gW, gW0 )
 %genY generate Y from gD, gW, gW0 with poisson noise
 %   Detailed explanation goes here
 [SLEN] = size(gD, 1);
@@ -6,7 +6,11 @@ function [ gY ] = genY_Poisson( gD, gW, gW0 )
 gY = gD*gW(:,:) + repmat( gW0(:)', SLEN, 1 );
 gY = reshape( gY, SLEN, HEIGHT, WIDTH );
 % gY = gY + rand( sLen, IHEIGHT, IWIDTH );
-lambda = exp( gY );
+if strcmp( LINK_FUNC, 'log' ) == 1
+    lambda = exp( gY );
+elseif strcmp( LINK_FUNC, 'identity' ) == 1
+    lambda = gY;
+end
 if ~isempty( find( isinf(lambda), 1 ) )
     fprintf( 'the value of w is too high.\n' );
 end

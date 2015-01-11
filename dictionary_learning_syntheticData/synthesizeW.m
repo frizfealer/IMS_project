@@ -65,9 +65,32 @@ elseif strcmp( type, 'diffusion' ) == 1
         if verbose == 1
             if cnt <= 5
                 figure; imagesc( reshape( gW(i,:), HEIGHT, WIDTH ) ); colorbar;
-                cnt = cnt + 1;
             end
         end
+        cW = gW(i, :);
+        % code for sparsity on W
+        gW(i,: ) = 0;
+        for j = 1:COMMUNITY_NUM
+            cIdx = find( com(j).areaIdx == 1);
+            areaLen = length(cIdx)*0.8;
+            areaLen = round( sqrt(areaLen) );
+            [y, x] = ind2sub( [HEIGHT WIDTH],  cIdx );
+            yStart = max( min(y) + randi( max(y) - min(y), 1 ) - round( areaLen / 1.5 ), min(y) );
+            yEnd = min( yStart + areaLen, max(y) );
+            xStart = max( min(x) + randi( max(x)-min(x), 1 ) - round( areaLen / 1.5 ), min(x) );
+            xEnd = min( xStart + areaLen, max(x) );
+            tmp = zeros( HEIGHT, WIDTH );
+            tmp( yStart:yEnd, xStart:xEnd ) = 1;
+            tmp = find( tmp == 1 );
+            gW(i, tmp) = cW(1, tmp);
+        end
+        if verbose == 1
+            if cnt <= 5
+                figure; imagesc( reshape( gW(i,:), HEIGHT, WIDTH ) ); colorbar;
+            end
+            cnt = cnt + 1;
+        end
+        
     end
 elseif strcmp( type, 'thresholding' ) == 1
     COMMUNITY_NUM = 2;

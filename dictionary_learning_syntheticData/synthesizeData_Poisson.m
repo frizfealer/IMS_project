@@ -1,4 +1,4 @@
-function [simData] = synthesizeData_Poisson( SLEN, MLEN, HEIGHT, WIDTH, DTemplate, DOptions, WOptions, verbose )
+function [simData] = synthesizeData_Poisson( LINK_FUNC, SLEN, MLEN, HEIGHT, WIDTH, DTemplate, DOptions, WOptions, verbose )
 %synthesizeData_Poiss synthesize data with poiss noise
 %SLEN, MLEN, HEIGHT, WIDTH, the dimension of the data
 %DTemplate, the dictionary template from which we generate gD (a zero-one
@@ -44,7 +44,7 @@ else
     params.SLEN = SLEN; params.MLEN = MLEN;
     [ gD, uDTemplate ] = synthesizeD( 'random', params, verbose );
 end
-
+MLEN = size(gD, 2);
 %% setting W'sinput parameters
 if ~isfield( WOptions, 'type' )
     type = 'diffusion';
@@ -77,7 +77,7 @@ fprintf( 'Synthesize W...\n' );
 
 
 %% Generate Y
-gY = genY_Poisson( gD, gW, gW0 );
+gY = genY_Poisson( LINK_FUNC, gD, gW, gW0 );
 % gY = round(lambda);
 simData.gY = gY; simData.gW = gW; simData.gW0 = gW0; simData.gD = gD; simData.uDTemplate = uDTemplate; simData.usedElement = usedElement;
 end
