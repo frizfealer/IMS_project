@@ -152,9 +152,16 @@ if isfield( param, 'newWInfo' )
 else
     newWInfo = [];
 end
+%for link function
+if isfield( param, 'linkFunc' )
+    LINK_FUNC = param.linkFunc;
+else
+    LINK_FUNC = 'identity';
+end
 
 
 LPAry = zeros( 1, OUTER_IT_NUM+1 );
+dfWVec = zeros( 1, OUTER_IT_NUM );
 
 %rhoCell will consist of MAXIT iteration number of rhoAry
 % rhoCell = cell( OUTER_IT_NUM, 1 );
@@ -197,7 +204,10 @@ for i = 1:hei*wid
     end
 end
 scaleFactor =  1 / ( max( inY(:) ) / max( tmp(:) ) );
-LPAry(1) = LP_DL_Poiss( aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
+if strcmp( LINK_FUNC, 'Identity' ) == 1
+    scaleFactor = 1;
+end
+LPAry(1) = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
 fprintf( 'parameters: outer iteration number = %d, ', OUTER_IT_NUM );
 fprintf( 'ADMM iteration number = %d, D-update iteration number = %d, Hessian flag for update D = %d, ', ADMM_IT_NUM, UP_D_IT_NUM, HES_FLAG );
 fprintf( 'Cluster number used to update = %d, ', CLUSTER_NUM );
@@ -233,7 +243,7 @@ for it = 1:OUTER_IT_NUM
     end
     %the second to the last parameter is a flag for each W output in ADMM steps
     %the last parameter is the tolerance of w in ADMM steps
-    uW_Res = updateW_ADMM_v3( inY, D, aMatrix, M_ADMM_IT_NUM, lambda, theta, USE_L1_FLAG, logFY, curVar, scaleFactor, 0, 1e-2, D_LOWER_BOUND, newWInfo );
+    uW_Res = updateW_ADMM_v3( LINK_FUNC, inY, D, aMatrix, M_ADMM_IT_NUM, lambda, theta, USE_L1_FLAG, logFY, curVar, scaleFactor, 0, 1e-2, D_LOWER_BOUND, newWInfo );
     W = uW_Res.W;
     W0 = uW_Res.W0;
     z0 = uW_Res.z0; z1 = uW_Res.z1; z2 = uW_Res.z2;
@@ -248,7 +258,7 @@ for it = 1:OUTER_IT_NUM
     validMap = BlkDS.indMap .* aMatrix;
     [ D ]= updateD_v8_ipopt( inY, W, W0, D, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM, W_LOWER_BOUND );
 
-    LPAry(it+1) = LP_DL_Poiss( aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
+    LPAry(it+1) = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
     tmp1 = max( abs( W(:)-prevW(:) ) );
     tmp2 = max( abs( W0(:)-prevW0(:) ) );
     tmp3 = max( abs( D(:)-prevD(:) ) );
@@ -269,9 +279,22 @@ for it = 1:OUTER_IT_NUM
         WHistCell{it+1} = W;
         save( W_HIST_PATH, 'WHistCell', '-v7.3' );
     end
-    % ALL conditions must be satisfied to stop outer loops
-    if abs(LPAry(it+1)-LPAry(it)) <= LP_TOL && ...
-        ( max( tmp1, tmp2 ) < W_TOL &&  tmp3 < D_TOL )
+    % compute df for W
+    ins = zeros( size(W, 1), 1 );
+    for i = 1:length(ins)
+        ins(i) = max( W(i,:) );
+    end
+    dfWVec(it) = length( find( ins > W_LOWER_BOUND );
+    dfWHoldFlag = 0;
+    if mod( it, 10 ) == 0
+        if isemtpy( find( diff( dfWVec(it:(it-10+1)))  ~= 0 ) )
+            dfWHoldFlag = 1;
+        end
+    end
+    % one of the conditions must be satisfied to stop outer loops
+    if abs(LPAry(it+1)-LPAry(it)) <= LP_TOL || ...
+        ( max( tmp1, tmp2 ) < W_TOL &&  tmp3 < D_TOL ) || ...
+        ( tmp3 < D_TOL && dfWHoldFlag == 1 ) 
         break;
     end
 end

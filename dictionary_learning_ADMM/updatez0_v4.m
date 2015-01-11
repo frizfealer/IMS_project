@@ -1,4 +1,4 @@
-function [ z0 ] = updatez0_v4( alphaFlag, Y, Z0_init, D, W, W0, U0, rho, scaleFac, varargin  )
+function [ z0 ] = updatez0_v4( alphaFlag, LINK_FUNC, Y, Z0_init, D, W, W0, U0, rho, scaleFac, varargin  )
 %updatez0_i,j using minfunc function to implement
 %y (location i, j) [s 1], z0 (location i, j) [s 1], D[s m] 
 %w (location i, j) [m 1], w0 (location i, j) scalar, u0 (location i, j)[s 1]
@@ -13,7 +13,11 @@ elseif alphaFlag == 1
     res1 = res1(:);
     coordXY = 1:sLen*nLen;
     vNum = sLen*nLen;
-    targetFunc = @(Z0) Z0_termFunc( Y, Z0, rho, res1, scaleFac, vNum, coordXY );
+    if strcmp( LINK_FUNC, 'log' ) == 1
+        targetFunc = @(Z0) Z0_termFunc_log( Y, Z0, rho, res1, scaleFac, vNum, coordXY );
+    elseif strcmp( LINK_FUNC, 'identity' ) == 1
+        targetFunc = @(Z0) Z0_termFunc_identity( Y, Z0, rho, res1, scaleFac, vNum, coordXY );
+    end
     if ~isempty( Z0_init )
         Z0Start = Z0_init(:);
     else
@@ -47,7 +51,7 @@ elseif alphaFlag == 1
 % %     options.HessUpdate='steepdesc';
 %      % options.UseParallel='always';
 %     options.GradObj='on';
-        options.Display = 'off';
+        options.Display = 'none';
 %     [ z0, ~ ] = fminunc( targetFunc, Z0Start, options );
      [ z0, ~ ] = minFunc( targetFunc, Z0Start, options );
     z0 = reshape( z0, sLen, nLen );
@@ -55,13 +59,22 @@ end
 
 end
 
-function [ val,grad, H ] = Z0_termFunc( Y, Z0, rho, res1, scaleFac, vNum, coordXY )
+function [ val,grad, H ] = Z0_termFunc_log( Y, Z0, rho, res1, scaleFac, vNum, coordXY )
 %Z0_termFunc the terms consisted of z0 in ADMM formulation
 eZ0 = exp(Z0);
 %     fprintf( 'll = %g, pp = %g\n', full(scaleFac*sum( ( -y.*z0 + eZ0 ))), full(rho / 2 * sum( (z0 +res1).^2 )));
 val = sum( scaleFac*( -Y.*Z0 + eZ0 ) ) + rho / 2 * sum( (Z0 +res1).^2 );
 grad = scaleFac*(-Y + eZ0) + rho* ( Z0 + res1 );
 tmp = scaleFac*eZ0 + rho;
+H = sparse( coordXY, coordXY, tmp, vNum, vNum );
+end
+
+function [ val,grad, H ] = Z0_termFunc_identity( Y, Z0, rho, res1, scaleFac, vNum, coordXY )
+%Z0_termFunc the terms consisted of z0 in ADMM formulation
+%     fprintf( 'll = %g, pp = %g\n', full(scaleFac*sum( ( -y.*z0 + eZ0 ))), full(rho / 2 * sum( (z0 +res1).^2 )));
+val = sum( scaleFac*( -Y.*log(Z0) + Z0 ) ) + rho / 2 * sum( (Z0 +res1).^2 );
+grad = scaleFac*(-Y./(Z0) + 1) + rho* ( Z0 + res1 );
+tmp = scaleFac*(Y./(Z0).^2) + rho;
 H = sparse( coordXY, coordXY, tmp, vNum, vNum );
 end
 

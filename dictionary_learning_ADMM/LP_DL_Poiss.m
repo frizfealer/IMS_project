@@ -1,4 +1,4 @@
-function [ val, meanVal, stdVal ] = LP_DL_Poiss( aMatrix, Y, W, W0, D, lambda, phi, theta, scaleFactor, logFY, varargin )
+function [ val, meanVal, stdVal ] = LP_DL_Poiss( LINK_FUNC, aMatrix, Y, W, W0, D, lambda, phi, theta, scaleFactor, logFY, varargin )
 %LP_DL_Poiss Compute the negative log posterior for
 %Dictioanry Learning with Poisson distribution
 % aMatrix [h w], an indicator matrix of with 1 means for tranining
@@ -44,7 +44,12 @@ end
 %     end
 % end
 idx = aMatrix == 1;
-firstTwoTermsMat = -Y(:, idx).*preY(:, idx) + exp( preY(:, idx) );
+if strcmp( LINK_FUNC, 'log' ) == 1
+    firstTwoTermsMat = -Y(:, idx).*preY(:, idx) + exp( preY(:, idx) );
+elseif strcmp( LINK_FUNC, 'identity' ) == 1
+    preY(preY==0)=1e-32;
+    firstTwoTermsMat = -Y(:, idx).*log( preY(:, idx) ) + preY(:, idx);
+end
 if ~isempty( logFY )
     firstTwoTermsMat = firstTwoTermsMat - logFY(:, idx);
 end

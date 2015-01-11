@@ -1,4 +1,4 @@
-function [WResStruct] = updateW_ADMM_v3( Y, D, aMatrix, itNum, lambda, theta, L1Flag, logFY, initVar, scaleFactor, varargin )
+function [WResStruct] = updateW_ADMM_v3( LINK_FUNC, Y, D, aMatrix, itNum, lambda, theta, L1Flag, logFY, initVar, scaleFactor, varargin )
 
 %% construct metaData
 BlkDS = conBLKDS( Y );
@@ -54,7 +54,12 @@ if ~isempty( newWInfo )
 end
 %% initializing z0 as log(inY)
 if isempty( initVar )
-    z0 = log(Y); z0(z0==-inf)=0; %initialize zo as log(Y)
+    if strcmp( LINK_FUNC, 'log' ) == 1 
+        z0 = log(Y); z0(z0==-inf)=0; %initialize zo as log(Y)
+    elseif strcmp( LINK_FUNC, 'identity' ) == 1
+        z0 = Y;
+        z0( z0 == 0 ) = 1e-32;
+    end
     %if not in traing set, we shoud not initialize z0 according to it.
     %take the average values
     idx = intersect( find(aMatrix==1), find(BlkDS.indMap==1) );
@@ -66,6 +71,8 @@ if isempty( initVar )
             z0(:, i) = tmp;
         end
     end
+        
+    
     z1 = zeros( mLen, wid*hei ); 
     z2 = cell( BlkDS.blkNum, 1 );
     for i = 1:BlkDS.blkNum
@@ -79,7 +86,11 @@ if isempty( initVar )
     end
     initVar.W = zeros( oMLen, wid*hei ); initVar.W0 = zeros( hei, wid );
 else
-    z0 = initVar.z0(:, :); z1 = initVar.z1(rMIdx, :); 
+    z0 = initVar.z0(:, :);
+    if strcmp( LINK_FUNC, 'identity' ) == 1
+        z0( z0 == 0 ) = 1e-32;
+    end
+    z1 = initVar.z1(rMIdx, :); 
     W = initVar.W(rMIdx, :); W0 = initVar.W0;
     z2 = cell( BlkDS.blkNum, 1 );
     for i = 1:BlkDS.blkNum
@@ -105,7 +116,7 @@ tmpEye(end, end) = 0;
 aPartofCforUW = sparse( [moutD; tmpEye] );
 %% main optimization process
 for j = 1:BlkDS.blkNum
-    LPAryADMM(1, j) = LP_DL_Poiss( aMatrix, Y, W, W0, D, lambda, 0, theta, scaleFactor, logFY, 0 );
+    LPAryADMM(1, j) = LP_DL_Poiss( LINK_FUNC, aMatrix, Y, W, W0, D, lambda, 0, theta, scaleFactor, logFY, 0 );
     loc = BlkDS.B2GMap{j};
     curY = Y(:, loc);
     curW = W(:, loc);
@@ -143,10 +154,10 @@ for j = 1:BlkDS.blkNum
         locAlpha1 = find( ismember( loc, locAlpha1 ) );
         %update for held-out data
         preZ0 = curZ0;
-        [ curZ0(:, locAlpha0) ] = updatez0_v4( 0, curY(:, locAlpha0), curZ0(:, locAlpha0), D, ...
+        [ curZ0(:, locAlpha0) ] = updatez0_v4( 0, LINK_FUNC, curY(:, locAlpha0), curZ0(:, locAlpha0), D, ...
             curW(:, locAlpha0), curW0(locAlpha0), curU0(:, locAlpha0), curRho, scaleFactor );
         %update for training data
-        [ curZ0(:, locAlpha1) ] = updatez0_v4( 1, curY(:, locAlpha1), curZ0(:, locAlpha1), D, ...
+        [ curZ0(:, locAlpha1) ] = updatez0_v4( 1, LINK_FUNC, curY(:, locAlpha1), curZ0(:, locAlpha1), D, ...
             curW(:, locAlpha1), curW0(locAlpha1), curU0(:, locAlpha1), curRho, scaleFactor );
         %% update z1
         fprintf( 'updating z1... ' );
@@ -191,12 +202,18 @@ for j = 1:BlkDS.blkNum
         
         tmp = D'*curU0;
         tmp = [tmp; sum(curU0)];
+        if isempty( tmp )
+            tmp = 0;
+        end
         tmp2 = cRblk'*curU2;
         maxRel = max( [ norm( tmp(:) ), norm( u1(:) ), norm( tmp2(:) ) ] );
         epsDual = sqrt(nDim)*EPS_ABS + maxRel*EPS_REL;
         
         resRecAry(itNumADMM, :, j) = [rf, epsPri, sf, epsDual];
         tmp = full( max( abs( curW(:) -  preW(:) ) ) );
+        if isempty(tmp)
+            tmp = 0;
+        end
         fprintf( '%d: %g %g %g %g %g %g \n',itNumADMM, rf, epsPri, sf, epsDual, curRhoAry(itNumADMM, j), full(tmp) );
 %         time = toc;
 %         fprintf( 'time: %g\n', time );        
@@ -206,9 +223,9 @@ for j = 1:BlkDS.blkNum
             break;
         end
         %% update the next stage rho
-        if rf > 10*sf
+        if rf > 10*sf || sf < epsDual
             curRhoAry(itNumADMM+1, j) = 2 * curRhoAry(itNumADMM, j);
-        elseif sf > 10*rf
+        elseif sf > 10*rf || rf < epsPri
             curRhoAry(itNumADMM+1, j) = 0.5 * curRhoAry(itNumADMM, j);
         else
             curRhoAry(itNumADMM+1, j) = curRhoAry(itNumADMM, j);
@@ -223,8 +240,7 @@ for j = 1:BlkDS.blkNum
         u1(:, loc) = curU1;
         z2{j} = curZ2;
         u2{j} = curU2;
-        LPAryADMM(itNumADMM+1, j) = LP_DL_Poiss( aMatrix, Y, W, W0, D, lambda, 0, theta, scaleFactor, logFY, 0 );
-        
+        LPAryADMM(itNumADMM+1, j) = LP_DL_Poiss( LINK_FUNC, aMatrix, Y, W, W0, D, lambda, 0, theta, scaleFactor, logFY, 0 );
         if j == BlkDS.blkNum
             if ~isempty(varargin) %WHistFlag == 1
                 if varargin{1} == 1
