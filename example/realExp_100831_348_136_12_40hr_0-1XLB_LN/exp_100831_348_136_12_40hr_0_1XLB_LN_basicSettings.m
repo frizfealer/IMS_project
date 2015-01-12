@@ -1,4 +1,4 @@
-function [ expRec, gridVec ] = exp_100831_348_136_12_40hr_0_1XLB_LN_basicSettings()
+function [] = exp_100831_348_136_12_40hr_0_1XLB_LN_basicSettings()
 %experiment scripts update @ 2014/12/31
 %% load data, including dataCube and mzAxis
 load( 'D:\IMS_DATA\100831_348_136_12,40hr_0-1XLB_LN\100831_348_136_12,40hr_0-1XLB_LN_noBin\100831_348_136_12,40hr_0-1XLB_LN.mzML_dc.mat' );
@@ -52,7 +52,7 @@ IonTableFilePathNeg = 'D:\Users\YeuChern\GitHub\IMS_project\example\molecule_pro
 %smallest molecule weight, set to H = 1.007
 %m/z error +/- 0.5
 [ nDTemplate, nDIonName, nSpeciesM ] = genDTemplate( mzAxis, IonTableFilePathNeg, 1.007, 0.5 );
-
+[ DTemplate2, nDIonName2, nspeciesM2 ] = genDTemplate_v2( dataCube, mzAxis, IonTableFilePathNeg, 1.007, 0.5 );
 save( '100831_348_136_12_40hr_0_1XLB_LN_input_20141231.mat' );
 
 % %% running dictionary learning
