@@ -1,4 +1,4 @@
-function [ finalD ] = updateD_v8_ipopt( inY, outW, outW0, D_init, DTemplate, aMatrix, HesOpt, phi, scaleFac, itNum, W_LOWER_BOUND )
+function [ finalD ] = updateD_v8_ipopt( LINK_FUNC, inY, outW, outW0, D_init, DTemplate, aMatrix, HesOpt, phi, scaleFac, itNum, W_LOWER_BOUND )
 %updateD_v8 update the whole dictionary using fmincon without ADMM
 %aMatrix, a indicator matrix, with 1 means using in trainning and 0 means
 %using in testing
@@ -46,13 +46,21 @@ options.ipopt.hessian_approximation = 'limited-memory';
 options.ipopt.limited_memory_max_history = 1500; 
 options.ipopt.honor_original_bounds = 'yes';
 options.ipopt.bound_relax_factor = 0;
+options.ipopt.derivative_test = 'first-order';
+options.ipopt.derivative_test_perturbation = 3e-6;
 
 % The callback functions.
-funcs.objective         = @objective;
+if strcmp( LINK_FUNC, 'log' ) == 1
+    funcs.objective         = @objective;
+    funcs.gradient          = @gradient;
+elseif strcmp( LINK_FUNC, 'identity' ) == 1
+    funcs.objective         = @objective_identity;
+    funcs.gradient          = @gradient_identity;
+end
 funcs.constraints  = @constraints;
-funcs.gradient          = @gradient;
 funcs.jacobian          = @jacobian;
 funcs.jacobianstructure = @jacobianstructure;
+
 %   
 % funcs.hessian           = @hessian;
 % funcs.hessianstructure  = @hessianstructure;
@@ -167,7 +175,7 @@ sTermT = staticTerm';
 
 % options.auxdata = { Y, W, staticTerm, nonZPos, nonZPosY, nonZPosX, phi, scaleFac, nonZGrpInfo, nonZLen, jacobStruct, nonZYGrp, Wsq, HessianStruct };
 options.auxdata = { Y, W, staticTerm, nonZPos, nonZPosY, nonZPosX, phi, scaleFac, nonZGrpInfo, nonZLen, jacobStruct, WT, gRes, nonZIdx, YT, sTermT, gPreY, gEPreY};
-[x, ~] = ipopt_auxdata(startD,funcs,options);
+[x, info] = ipopt_auxdata(startD,funcs,options);
 rD(nonZPos) = x;
 % for i = 1:rMLen
 %     rD(:, i) = rD(:, i) / max( 1, norm( rD(:, i) ) ); 
@@ -190,6 +198,20 @@ f = sum( sum( -YT.* preY + ePreY ) ) * scaleFac;
 f = f + phi* sum(x);
 end
 
+function f = objective_identity(x, auxdata)
+%x is current D
+[Y, W, ~, nonZPosY, nonZPosX, phi, scaleFac , WT, YT, sTermT] = deal(auxdata{[1 2 3 5 6 7 8 12 15 16]});
+% D = sparse( nonZPosY, nonZPosX, x, size(Y, 1), size(W, 1) );
+% gPreY = staticTerm + D * W;
+% gEPreY = exp( gPreY );
+DT = sparse( nonZPosX, nonZPosY, x, size(W, 1), size(Y, 1) );
+preY = sTermT + WT * DT;
+% preY( preY == 0 ) = 1e-32;
+% f = -Y.* preY + ePreY;
+f = sum( sum( -YT.* log(preY+1e-32) + preY ) ) * scaleFac;
+f = f + phi* sum(x);
+end
+
 function gRes = gradient (x, auxdata)
 [Y, W, ~, ~, nonZPosY, nonZPosX, phi, scaleFac, nonZLen, WT, gRes, nonZIdx, YT, sTermT] = deal(auxdata{[1:8 10 12 13 14 15 16]});
 DT = sparse( nonZPosX, nonZPosY, x, size(W, 1), size(Y, 1) );
@@ -201,6 +223,21 @@ curLoc = 1;
 for i = 1:length(nonZIdx)
     idx = nonZIdx{i};
     gRes(curLoc:(curLoc+nonZLen(i)-1)) = (-YT(:,idx) + ePreY(:, idx))'*WT(:,i);
+    curLoc = curLoc + nonZLen(i);
+end
+gRes = gRes*scaleFac + phi;
+end
+
+function gRes = gradient_identity(x, auxdata)
+[Y, W, ~, ~, nonZPosY, nonZPosX, phi, scaleFac, nonZLen, WT, gRes, nonZIdx, YT, sTermT] = deal(auxdata{[1:8 10 12 13 14 15 16]});
+DT = sparse( nonZPosX, nonZPosY, x, size(W, 1), size(Y, 1) );
+preY = sTermT + WT * DT;
+% gRes = (-Y+ePreY)*WT;
+% gRes = gRes(nonZPos);
+curLoc = 1;
+for i = 1:length(nonZIdx)
+    idx = nonZIdx{i};
+    gRes(curLoc:(curLoc+nonZLen(i)-1)) = -( ( YT(:, idx) ./ (preY(:, idx)+1e-32) )'*WT(:,i) ) + sum(WT(:, i));
     curLoc = curLoc + nonZLen(i);
 end
 gRes = gRes*scaleFac + phi;
