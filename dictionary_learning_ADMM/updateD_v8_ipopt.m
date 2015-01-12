@@ -46,8 +46,8 @@ options.ipopt.hessian_approximation = 'limited-memory';
 options.ipopt.limited_memory_max_history = 1500; 
 options.ipopt.honor_original_bounds = 'yes';
 options.ipopt.bound_relax_factor = 0;
-options.ipopt.derivative_test = 'first-order';
-options.ipopt.derivative_test_perturbation = 3e-6;
+% options.ipopt.derivative_test = 'first-order';
+% options.ipopt.derivative_test_perturbation = 3e-6;
 
 % The callback functions.
 if strcmp( LINK_FUNC, 'log' ) == 1
