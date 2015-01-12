@@ -204,7 +204,7 @@ for i = 1:hei*wid
     end
 end
 scaleFactor =  1 / ( max( inY(:) ) / max( tmp(:) ) );
-if strcmp( LINK_FUNC, 'Identity' ) == 1
+if strcmp( LINK_FUNC, 'identity' ) == 1
     scaleFactor = 1;
 end
 LPAry(1) = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
@@ -256,7 +256,7 @@ for it = 1:OUTER_IT_NUM
     end
     %% update D
     validMap = BlkDS.indMap .* aMatrix;
-    [ D ]= updateD_v8_ipopt( inY, W, W0, D, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM, W_LOWER_BOUND );
+    [ D ]= updateD_v8_ipopt( LINK_FUNC, inY, W, W0, D, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM, W_LOWER_BOUND );
 
     LPAry(it+1) = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
     tmp1 = max( abs( W(:)-prevW(:) ) );
@@ -284,10 +284,10 @@ for it = 1:OUTER_IT_NUM
     for i = 1:length(ins)
         ins(i) = max( W(i,:) );
     end
-    dfWVec(it) = length( find( ins > W_LOWER_BOUND );
+    dfWVec(it) = length( find( ins > W_LOWER_BOUND ) );
     dfWHoldFlag = 0;
     if mod( it, 10 ) == 0
-        if isemtpy( find( diff( dfWVec(it:(it-10+1)))  ~= 0 ) )
+        if isempty( find( diff( dfWVec((it-10+1):it))  ~= 0, 1 ) )
             dfWHoldFlag = 1;
         end
     end
