@@ -16,8 +16,8 @@ logFNPath = '../'+logFolderName+'/'
 if not os.path.exists(logFNPath):
     os.makedirs(logFNPath)
 for file in filenames:
-	#cmd = 'matlab -q day -nodesktop -nodisplay -nosplash -r "' + file[:-2] + '; exit" -logfile ' + file[:-2]+'.log &'
-	cmd = 'bsub matlab -nodisplay -nosplash -singleCompThread -r ' + file[:-2] + ' -logfile ' + logFNPath + file[:-2]+'.log';
+	#cmd = 'matlab -nodesktop -nodisplay -nosplash -r "' + file[:-2] + '; exit" -logfile ' + file[:-2]+'.log &'
+	cmd = 'bsub matlab -q day -nodisplay -nosplash -singleCompThread -r ' + file[:-2] + ' -logfile ' + logFNPath + file[:-2]+'.log';
 
 	print cmd
 	#subprocess.call(cmd, shell=False)
