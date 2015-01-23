@@ -1,35 +1,35 @@
-function [ val ] = validationOnTesting( aMatrix, Y, D )
-%validationOnTesting using the trained W, W0, and D on testing data
-%inY [s h w] inW [m h w] inW0 [h w] inD [s m]
-%aMatrix [h w], with 1 on grid means testing, 0 means trainning
-
-%% preprocessing D
-[~, mLen] = size(D);
-ins = zeros(mLen, 1);
-for i = 1:mLen
-ins(i) = max(D(:,i));
-end
-idx = ins>1e-2;
-D = D(:, idx);
-[~, mLen] = size(D);
+function [ val, preY ] = validationOnTesting( aMatrix, Y, D, W, W0, lambda, linkFunc )
+%validationOnTesting using the trained W, W0, and D on testing data Y
 
 [sLen, ~, ~] = size( Y );
 BlkDS = conBLKDS( Y );
 tIdx = BlkDS.indMap==1 & aMatrix == 0;
-
+preY = D*W(idx,tIdx) + repmat( W0( tIdx )', sLen, 1 );
 testY = Y(:, tIdx);
-testW = zeros( mLen, length(find(tIdx)==1) );
-testW0 = zeros( 1, length(find(tIdx)==1) );
-%compute scaleFactor
-tmp = log(testY); tmp(tmp==-inf)=0; 
-scaleFactor =  1 / ( max( testY(:) ) / max( tmp(:) ) );
+if strcmp( linkFunc, 'identity' ) == 1
+    val = testY.*log(preY+1e-32) - preY;
+    val = sum(val(:));
+elseif strcmp( linkFunc, 'log' ) == 1
+    val = testY.*preY - exp(preY);
+    val = sum(val(:));
+end
 
-[WResStruct] = updateW_ADMM_testing( testY, D, 200, [], [], scaleFactor );
 
 
-preY = D* WResStruct.W(:, :) + repmat( WResStruct.W0(:)', sLen, 1 ); 
-val = testY.*preY - exp( preY);
-val = sum(val(:));
-
+% %compute scaleFactor
+% scaleFactor =  1e-2;
+% if mLen~=0
+%     [WResStruct] = updateW_ADMM_testing( testY, D, 200, [], [], scaleFactor, lambda, 5e-3, 1e-2, [] );
+%     newWInfo = [];
+%     for i = 1:size(testY(:,:), 2)
+%         newWInfo{i} = find( WResStruct.W(:, i) > max(WResStruct.W(:, i))*1e-2);
+%     end
+%     [WResStruct] = updateW_ADMM_testing( testY, D, 200, [], [], scaleFactor, lambda, 5e-3, 1e-2, newWInfo );
+%     preY = D* WResStruct.W(:, :) + repmat( WResStruct.W0(:)', sLen, 1 ); 
+%     val = testY.*preY - exp( preY);
+%     val = sum(val(:));
+% else
+%     val = 0;
+% end
 end
 

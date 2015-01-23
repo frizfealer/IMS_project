@@ -1,4 +1,4 @@
-function [ dfVec, thetaVec ] = testThetaMax( Y, D, startVal, intVal, intThres, testNum, seq, w_tol )
+function [ dfVec, thetaVec ] = testThetaMax( Y, D, startVal, intVal, testNum, seq, w_tol )
 %testThetaMax test lambda max
 if ~isempty(seq)
     thetaVec = seq;
@@ -25,8 +25,8 @@ for i = 1:length(thetaVec)
     L1Flag = 1;
     logFY = [];
     initVar = [];
-    scaleFactor = computeScaleFactor( Y, aMatrix );
-    [WResStruct] = updateW_ADMM_v3( Y, D, aMatrix, itNum, 1e-32, theta, L1Flag, logFY, initVar, scaleFactor, 0, w_tol );
+    scaleFactor = 1e-2;
+    [WResStruct] = updateW_ADMM_v3( 'identity', Y, D, aMatrix, itNum, 1e-32, theta, L1Flag, logFY, initVar, scaleFactor, 0, w_tol );
     %figure; subplot(1, 2, 1); plot(WResStruct.LPAry(:, 1)); subplot(1, 2, 2); plot(WResStruct.LPAry(:, 2) );
     ins = Rall*WResStruct.W'; ins = abs(ins);
     tmp = zeros( size(ins, 1), 1);
@@ -34,7 +34,7 @@ for i = 1:length(thetaVec)
         tmp(j) = max(ins(j, :));
     end
     %figure;plot(tmp)
-    dfVec(i) = length(find(tmp>intThres));
+    dfVec(i) = length(find(tmp>max(tmp)*1e-2));
 end
 
 end

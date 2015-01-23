@@ -22,7 +22,8 @@ if verbose == 1
     figure;imshowpair( macSam, MMapMSSam );
 end
 %     figure;imshowpair( rMSSam, rrBioSam );
-figure('Visible','Off'); imshow( mapBioSam ); hold on; h = imshow( MMapMSSam ); 
+% figure('Visible','Off'); 
+imshow( mapBioSam ); hold on; h = imshow( MMapMSSam ); 
 % indMap = zeros( size( rMSSam, 1 ), size( rMSSam, 2 ) );
 % for i = 1:size( rMSSam, 1  )
 %     for j = 1:size( rMSSam, 2 )
