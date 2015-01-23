@@ -1,4 +1,4 @@
-function [ AICC_3 ] = computeAICc( gY, LL, D_pLSA, BlkDS, k)
+function [ AICC_3 ] = computeAICc( gY, LL, BlkDS, k)
 %W_pLSA = D_pLSA \ gY(:, BlkDS.indMap == 1);
 samNum = length( gY(1, BlkDS.indMap == 1 ) ) * size(gY, 1);
 
