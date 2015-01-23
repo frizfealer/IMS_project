@@ -73,7 +73,7 @@ param.INIT_D = 'NNMF'; %the method of dictionary initialization
 
 %% need install the package SLEP and add the package to the path
 % addpath( genpath( 'D:\SLEP_package_4.1\SLEP' ) );
-[ expRec ] = dictionaryLearning_ADMM_v4( dataCube, [], pDTemplate, [], lambda, theta, phi, aMatrix, BlkDS, [], snapPath, param );
+[ expRec ] = dictionaryLearning_ADMM_v5( dataCube, [], pDTemplate, [], lambda, theta, phi, aMatrix, BlkDS, [], snapPath, param );
 [ elambda, etheta, ephi ] = estimateHypParam( expRec.outW, expRec.outD, DTemplate, BlkDS );
 [ gridVec ] = genHypParamGrid( [elambda, etheta, ephi], 5 );
 %elambda = 1.9303, etheta = 2.0707, ephi = 4.2295
