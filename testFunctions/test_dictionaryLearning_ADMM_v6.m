@@ -15,10 +15,15 @@ elseif testCaseNum == 2
     [ uDIonName, uDTemplate, usedEle, uSpeciesM, uD, uWInfo, dfW ] = computeDF_updateD_W( expRec, nDTemplate, nDIonName, nSpeciesM );
     [ param ] = setDLParameters();
     lambda = 1e-32; theta = 1e-32; phi = 1e-32;
-    param.ADMM_IT_NUM = 3;
-    param.UP_D_IT_NUM = 3;
     param.newWInfo = uWInfo;
     [ expRec ] = dictionaryLearning_ADMM_v6( dataCube, [], uDTemplate, [], lambda, theta, phi, aMatrix, BlkDS, [], 'D:\temp.mat', param );
+elseif testCaseNum == 3
+    load( '/csbiohome01/ycharn/IMS_project-master/example/realExp_100831_348_136_12_40hr_0-1XLB_LN/100831_348_136_12_40hr_0_1XLB_LN_input_20141231' );
+    [ param ] = setDLParameters();
+    lambda = 1e-32; theta = 1e-32; phi = 1e-32;
+    param.ADMM_IT_NUM = 2;
+    param.UP_D_IT_NUM = 2;
+    [ expRec ] = dictionaryLearning_ADMM_v6( dataCube, [], nDTemplate, [], lambda, theta, phi, aMatrix, BlkDS, [], 'D:\temp.mat', param );
 end
 end
 
