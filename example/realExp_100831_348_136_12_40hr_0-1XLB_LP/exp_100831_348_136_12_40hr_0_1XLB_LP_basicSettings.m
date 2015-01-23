@@ -51,7 +51,8 @@ mzAxis = mzAxis(tIdx);
 IonTableFilePathPos = 'D:\Users\YeuChern\GitHub\IMS_project\example\molecule_profile_pos.csv';
 %smallest molecule weight, set to H = 1.007
 %m/z error +/- 0.5
-[ pDTemplate, pDIonName, pSpeciesM ] = genDTemplate_v2( dataCube, mzAxis, IonTableFilePathPos, 1.007, 0.5 );
+[ pDTemplate, pDIonName, pSpeciesM ] = genDTemplate( mzAxis, IonTableFilePathPos, 1.007, 0.5 );
+[ pDTemplate2, pDIonName2, pSpeciesM2 ] = genDTemplate_v2( dataCube, mzAxis, IonTableFilePathPos, 1.007, 0.5 );
 
 save( '100831_348_136_12_40hr_0_1XLB_LP_input_20150108.mat' );
 
