@@ -27,6 +27,7 @@ for i = 1:16
 end
 r0 = mfitD(:,1:16)'*gD;
 figure; 
+ set(gca,'fontsize',20, 'fontweight', 'bold')
 imagesc(mfitD(:,1:16)'*gD); colorbar; ylabel( 'dictionary element from computation method' ); xlabel( 'dictionary element from ground truth' ); 
 
 
