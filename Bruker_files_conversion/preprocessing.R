@@ -127,7 +127,7 @@ MALDI_IMS_preprocessing <- function( iPath, outputPath, baseLineFlag, binningFla
 		# whether to do normalization or not
 		#s2 <- transformIntensity(s1, method="sqrt")
 		# s3 <- smoothIntensity(s2, method="MovingAverage", halfWindowSize=2)
-		s3 <- smoothIntensity(s1, method="SavitzkyGolay", halfWindowSize=10)
+		#s3 <- smoothIntensity(s1, method="SavitzkyGolay", halfWindowSize=10)
 		if( baseLineFlag == 1 )
 		{
 			s4 <- removeBaseline(s3, method="SNIP", iterations=100)
@@ -137,7 +137,7 @@ MALDI_IMS_preprocessing <- function( iPath, outputPath, baseLineFlag, binningFla
 			s4 <- s3
 		}
 		# whether to use the original intensity or not
-		s[[i]] = s4;
+		s[[i]] = s1;
 		p <- detectPeaks(s4, method="MAD", halfWindowSize=20, SNR=2)
 		pData[[i]]=p
 	}
