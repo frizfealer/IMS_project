@@ -11,7 +11,7 @@ for i = 1:hei*wid
         tmp(:, i) = tmp2;
     end
 end
-scaleFactor =  1 / ( max( Y(:) ) / max( tmp(:) ) );
+scaleFactor =  1 / ( max( Y(:) ) / max( tmp(:) ) ) * 100;
 
 end
 

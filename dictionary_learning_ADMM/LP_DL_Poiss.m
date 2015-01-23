@@ -47,8 +47,8 @@ idx = aMatrix == 1;
 if strcmp( LINK_FUNC, 'log' ) == 1
     firstTwoTermsMat = -Y(:, idx).*preY(:, idx) + exp( preY(:, idx) );
 elseif strcmp( LINK_FUNC, 'identity' ) == 1
-    preY(preY==0)=1e-32;
-    firstTwoTermsMat = -Y(:, idx).*log( preY(:, idx) ) + preY(:, idx);
+%     preY(preY==0)=1e-32;
+    firstTwoTermsMat = -Y(:, idx).*log( preY(:, idx) + 1e-32 ) + preY(:, idx);
 end
 if ~isempty( logFY )
     firstTwoTermsMat = firstTwoTermsMat - logFY(:, idx);

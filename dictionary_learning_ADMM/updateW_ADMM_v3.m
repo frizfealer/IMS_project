@@ -20,14 +20,14 @@ if ~isempty(varargin)
         Wtol = varargin{2};
         D_LOWER_BOUND = varargin{3};
     else
-        Wtol = 1e-3;
+        Wtol = 5*1e-3;
         D_LOWER_BOUND = 1e-2;
     end
     if length(varargin) == 4
         newWInfo = varargin{4};
     end
 else
-    Wtol = 1e-3;
+    Wtol = 5*1e-3;
     D_LOWER_BOUND = 1e-2;
 end
 
@@ -223,10 +223,14 @@ for j = 1:BlkDS.blkNum
             break;
         end
         %% update the next stage rho
-        if rf > 10*sf || sf < epsDual
+        if rf > 10*sf
             curRhoAry(itNumADMM+1, j) = 2 * curRhoAry(itNumADMM, j);
-        elseif sf > 10*rf || rf < epsPri
+        elseif sf < epsDual
+            curRhoAry(itNumADMM+1, j) = 1.1 * curRhoAry(itNumADMM, j);
+        elseif sf > 10*rf
             curRhoAry(itNumADMM+1, j) = 0.5 * curRhoAry(itNumADMM, j);
+        elseif rf < epsPri
+            curRhoAry(itNumADMM+1, j) = 0.901 * curRhoAry(itNumADMM, j);
         else
             curRhoAry(itNumADMM+1, j) = curRhoAry(itNumADMM, j);
         end
