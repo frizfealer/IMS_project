@@ -7,6 +7,12 @@ load( 'D:\Users\YeuChern\GitHub\IMS_project\example\realExp_100831_348_136_12_40
 % A possible error peak
 [~, pIdx4] = min(abs(mzAxis-1057.6));
 
+%positive peaks
+[~, targetIdx(1)] = min(abs(mzAxis-1031));
+[~, targetIdx(2)] = min(abs(mzAxis-1045));
+[~, targetIdx(3)] = min(abs(mzAxis-1059));
+
+
 %% shown in the data
 % figure; subplot( 2, 2, 1); imagesc( reshape( dataCube(pIdx1, :), 38, 60 ) ); colorbar ;title('m/z = 1007.7');
 % subplot( 2, 2, 2 ); imagesc( reshape( dataCube(pIdx2, :), 38, 60 ) ); colorbar ;title('m/z = 1007.7');
@@ -44,7 +50,7 @@ LL_Cell = {};
 AICVec = zeros( size(inY, 1), 1 );
 
 Learn.Verbosity = 0;
-Learn.Max_Iterations = 5000; 
+Learn.Max_Iterations = 200; 
 Learn.heldout = 0; % for tempered EM only, percentage of held out data
 Learn.Min_Likelihood_Change = 1e-3;
 Learn.Folding_Iterations = 20; % for TEM only: number of fiolding
@@ -52,7 +58,7 @@ Learn.Folding_Iterations = 20; % for TEM only: number of fiolding
 Learn.TEM =0; %tempered o not tempered
 % start pLSA
 
-for i = 90:size(inY, 1)
+for i = 1:90
     %Par = []; Par.maxit = 1e3; Par.Leps = 1; Par.doplot = 0;
     %[Pw_z,Pd_z,Pz,Li] = pLSA_EM( inY(:, BlkDS.indMap==1), i, Par );
     [Pw_z,Pz_d,Pd,Li,perp,beta] = pLSA( sparse(inY(:, BlkDS.indMap==1)),[],i,Learn);
@@ -62,7 +68,7 @@ for i = 90:size(inY, 1)
     D_pLSA_Cell{i} = Pw_z;
     LL_Cell{i} = Li(end);
     [ AICVec(i) ] = computeAICc( inY, Li(end), Pw_z, BlkDS, i );
-    save( 'D_pLSA_LL_AIC.mat', 'D_pLSA_Cell', 'LL_Cell', 'AICVec' );
+    save( 'D_pLSA_LL_AIC_LP.mat', 'D_pLSA_Cell', 'LL_Cell', 'AICVec' );
     % figure; subplot( 2, 2, 1); plot( Pw_z(pIdx1, :) ); title('m/z = 1007.7');
     % subplot( 2, 2, 2 ); plot( Pw_z(pIdx2, :) ); title('m/z = 1021.8');
     % subplot( 2, 2, 3 ); plot( Pw_z(pIdx3, :) ); title('m/z = 1035.8');
@@ -81,11 +87,26 @@ figure; plot(AICVec(1:length(LLVec))); xlabel( 'compound number' ); ylabel( 'AIC
 export_fig k_AICc.pdf -transparent
 %% check peaks
 statVec = zeros( length(LL_Cell), 1 );
-for i = 1:length(LL_Cell)
+for i = 1:150
     [ resVec ] = evaluateRecovery( D_pLSA_Cell{i}, [pIdx1, pIdx2, pIdx3], setdiff(1:396, [pIdx1, pIdx2, pIdx3]), 1e-2 );
     statVec(i) = max(resVec);
 end
+statVec = zeros( length(LL_Cell), 1 );
+for i = 1:length(LL_Cell)
+    [ resVec ] = evaluateRecovery( D_pLSA_Cell{i}, [pIdx1, pIdx2, pIdx3], setdiff(1:317, [pIdx1, pIdx2, pIdx3]), 1e-2 );
+    statVec(i) = max(resVec);
+end
+    [ resVec ] = evaluateRecovery( D_pLSA_Cell{106}, [pIdx1, pIdx2, pIdx3], setdiff(1:317, [pIdx1, pIdx2, pIdx3]), 1e-2 );
 
+%positive peaks
+statVec = zeros( length(LL_Cell), 1 );
+for i = 1:length(LL_Cell)
+    [ resVec ] = evaluateRecovery( D_pLSA_Cell{i}, targetIdx, setdiff(1:355, targetIdx), 1e-2 );
+    statVec(i) = max(resVec);
+end
+[ resVec ] = evaluateRecovery( D_pLSA_Cell{90}, targetIdx, setdiff(1:355, targetIdx), 1e-2);
+[ ~, maxE ] = max( resVec );
+figure; plot( D_pLSA_Cell{90}(:, maxE) ); xlabel( 'm/z value' ); ylabel( 'intensity' );
 for i = 10:10:90
     figure; subplot( 2, 2, 1); plot( D_pLSA_Cell{i}(pIdx1, :) ); title('m/z = 1007.7');
     subplot( 2, 2, 2 ); plot( D_pLSA_Cell{i}(pIdx2, :) ); title('m/z = 1021.8');
@@ -93,8 +114,8 @@ for i = 10:10:90
     subplot( 2, 2, 4 ); plot( D_pLSA_Cell{i}(pIdx4, :) ); title('m/z = 1057.6');
 end
 
-figure; subplot( 2, 2, 1); plot( D_pLSA_Cell{end}(pIdx1, :) ); title('m/z = 1007.7');
-subplot( 2, 2, 2 ); plot( D_pLSA_Cell{end}(pIdx2, :) ); title('m/z = 1021.8');
-subplot( 2, 2, 3 ); plot( D_pLSA_Cell{end}(pIdx3, :) ); title('m/z = 1035.8');
+figure; subplot( 2, 2, 1); plot( D_pLSA_Cell{end}(targetIdx(1), :) ); title('m/z = 1007.7');
+subplot( 2, 2, 2 ); plot( D_pLSA_Cell{end}(targetIdx(2), :) ); title('m/z = 1021.8');
+subplot( 2, 2, 3 ); plot( D_pLSA_Cell{end}(targetIdx(3), :) ); title('m/z = 1035.8');
 subplot( 2, 2, 4 ); plot( D_pLSA_Cell{end}(pIdx4, :) ); title('m/z = 1057.6');
 
