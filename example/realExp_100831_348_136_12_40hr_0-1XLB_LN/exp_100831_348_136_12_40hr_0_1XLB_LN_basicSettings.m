@@ -28,7 +28,7 @@ mzAxis = mzAxis(tsIdx:teIdx);
 [SLEN, IHEIGHT, IWIDTH] = size( dataCube );
 
 %% trim data, only consider m/z channel has values larger then the value of  intThreshold accross all the grids
-intThreshold = 10;
+intThreshold = 10; %ceil(max(dataCube(:))*1e-3)
 ins = dataCube(:,:);
 ins = ins(:, BlkDS.indMap);
 tmp = zeros( size( ins, 1 ), 1 );
@@ -51,8 +51,11 @@ mzAxis = mzAxis(tIdx);
 IonTableFilePathNeg = 'D:\Users\YeuChern\GitHub\IMS_project\example\molecule_profile_neg.csv';
 %smallest molecule weight, set to H = 1.007
 %m/z error +/- 0.5
-[ nDTemplate, nDIonName, nSpeciesM ] = genDTemplate( mzAxis, IonTableFilePathNeg, 1.007, 0.5 );
-[ DTemplate2, nDIonName2, nspeciesM2 ] = genDTemplate_v2( dataCube, mzAxis, IonTableFilePathNeg, 1.007, 0.5 );
+% [ nDTemplate, nDIonName, nSpeciesM ] = genDTemplate( mzAxis, IonTableFilePathNeg, 1.007, 0.5 );
+% [ DTemplate2, nDIonName2, nspeciesM2 ] = genDTemplate_v2( dataCube, mzAxis, IonTableFilePathNeg, 1.007, 0.5 );
+[ DTemplate3, DIonName3, speciesM3 ] = genDTemplate3( mzAxis, IonTableFilePathNeg, 1.007, 0.5, [1 3 6] );
+% [ sDTemplate, sDIonName, sspeciesM ] = genDTemplate3( mzAxis, IonTableFilePathNeg, 1.007, 0.5, [1] );
+
 save( '100831_348_136_12_40hr_0_1XLB_LN_input_20141231.mat' );
 
 % %% running dictionary learning
