@@ -55,7 +55,6 @@ DTemplate = [];
 DIonName = {};
 cnt = 1;
 fprintf( 'generating DTemplate...\n' );
-n = 0;
 for i = 1:length(mMVec)
 %     fprintf( 'm/z %g\n', mMVec(i));
     possibleRelatedPeaks = mpAry+mMVec(i);
