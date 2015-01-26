@@ -158,6 +158,12 @@ if isfield( param, 'linkFunc' )
 else
     LINK_FUNC = 'identity';
 end
+%for Dictionary element's constraints
+if isfield( param, 'D_CONSTRAINTS' )
+    D_CONSTRAINTS = param.D_CONSTRAINTS;
+else
+    D_CONSTRAINTS = 'L1';
+end
 
 
 LPAry = zeros( 1, OUTER_IT_NUM+1 );
@@ -203,9 +209,9 @@ for i = 1:hei*wid
         tmp(:, i) = tmp2;
     end
 end
-scaleFactor =  1 / ( max( inY(:) ) / max( tmp(:) ) );
+scaleFactor =  1 / ( max( inY(:) ) / max( tmp(:) ) ) * 1e2;
 if strcmp( LINK_FUNC, 'identity' ) == 1
-    scaleFactor = 1;
+    scaleFactor = 1e-1;
 end
 LPAry(1) = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
 fprintf( 'parameters: outer iteration number = %d, ', OUTER_IT_NUM );
@@ -243,7 +249,7 @@ for it = 1:OUTER_IT_NUM
     end
     %the second to the last parameter is a flag for each W output in ADMM steps
     %the last parameter is the tolerance of w in ADMM steps
-    uW_Res = updateW_ADMM_v3( LINK_FUNC, inY, D, aMatrix, M_ADMM_IT_NUM, lambda, theta, USE_L1_FLAG, logFY, curVar, scaleFactor, 0, 1e-2, D_LOWER_BOUND, newWInfo );
+    uW_Res = updateW_ADMM_v3( LINK_FUNC, inY, D, aMatrix, M_ADMM_IT_NUM, lambda, theta, USE_L1_FLAG, logFY, curVar, scaleFactor, 0, W_TOL, D_LOWER_BOUND, newWInfo );
     W = uW_Res.W;
     W0 = uW_Res.W0;
     z0 = uW_Res.z0; z1 = uW_Res.z1; z2 = uW_Res.z2;
@@ -256,7 +262,7 @@ for it = 1:OUTER_IT_NUM
     end
     %% update D
     validMap = BlkDS.indMap .* aMatrix;
-    [ D ]= updateD_v8_ipopt( LINK_FUNC, inY, W, W0, D, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM, W_LOWER_BOUND );
+    [ D ]= updateD_v8_ipopt( LINK_FUNC, D_CONSTRAINTS, inY, W, W0, D, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM, W_LOWER_BOUND );
 
     LPAry(it+1) = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
     tmp1 = max( abs( W(:)-prevW(:) ) );
@@ -293,8 +299,8 @@ for it = 1:OUTER_IT_NUM
     end
     % one of the conditions must be satisfied to stop outer loops
     if abs(LPAry(it+1)-LPAry(it)) <= LP_TOL || ...
-        ( max( tmp1, tmp2 ) < W_TOL &&  tmp3 < D_TOL ) || ...
-        ( tmp3 < D_TOL && dfWHoldFlag == 1 ) 
+        ( max( tmp1, tmp2 ) < W_TOL &&  tmp3 < D_TOL ) %|| ...
+        %( tmp3 < D_TOL && dfWHoldFlag == 1 ) 
         break;
     end
 end
