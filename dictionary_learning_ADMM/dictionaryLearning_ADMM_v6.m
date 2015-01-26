@@ -213,6 +213,8 @@ scaleFactor =  1 / ( max( inY(:) ) / max( tmp(:) ) ) * 1e2;
 if strcmp( LINK_FUNC, 'identity' ) == 1
     scaleFactor = 1e-1;
 end
+% set all scaleFactor to 1
+scaleFactor = 1;
 LPAry(1) = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
 fprintf( 'parameters: outer iteration number = %d, ', OUTER_IT_NUM );
 fprintf( 'ADMM iteration number = %d, D-update iteration number = %d, Hessian flag for update D = %d, ', ADMM_IT_NUM, UP_D_IT_NUM, HES_FLAG );
