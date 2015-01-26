@@ -1,4 +1,4 @@
-function [ finalD ] = updateD_v8_ipopt( LINK_FUNC, inY, outW, outW0, D_init, DTemplate, aMatrix, HesOpt, phi, scaleFac, itNum, W_LOWER_BOUND )
+function [ finalD ] = updateD_v8_ipopt( LINK_FUNC, CONSTRAINT, inY, outW, outW0, D_init, DTemplate, aMatrix, HesOpt, phi, scaleFac, itNum, W_LOWER_BOUND )
 %updateD_v8 update the whole dictionary using fmincon without ADMM
 %aMatrix, a indicator matrix, with 1 means using in trainning and 0 means
 %using in testing
@@ -56,12 +56,21 @@ if strcmp( LINK_FUNC, 'log' ) == 1
 elseif strcmp( LINK_FUNC, 'identity' ) == 1
     funcs.objective         = @objective_identity;
     funcs.gradient          = @gradient_identity;
+elseif strcmp( LINK_FUNC, 'log_gaussain' ) == 1    
+    
 end
-funcs.constraints  = @constraints;
-funcs.jacobian          = @jacobian;
-funcs.jacobianstructure = @jacobianstructure;
-
-%   
+%the L2 square constraint
+if strcmp( CONSTRAINT, 'L2_SQUARE' ) == 1
+    % funcs.constraints  = @constraints;
+    % funcs.jacobian          = @jacobian;
+    % funcs.jacobianstructure = @jacobianstructure;
+    %the L1 constraint
+elseif strcmp( CONSTRAINT, 'L1' ) == 1
+    funcs.constraints  = @constraints_L1;
+    funcs.jacobian          = @jacobian_L1;
+    funcs.jacobianstructure = @jacobianstructure;
+end
+%
 % funcs.hessian           = @hessian;
 % funcs.hessianstructure  = @hessianstructure;
 
@@ -249,6 +258,11 @@ tmp = ( x.^2 );
 c = accumarray( nonZGrpInfo, tmp );
 end
 
+function c = constraints_L1(x, auxdata)
+[nonZGrpInfo]=auxdata{9};
+c = accumarray( nonZGrpInfo, x );
+end
+
 function J = jacobian (x, auxdata)  
 nonZLen = auxdata{10};
 J = zeros( length( nonZLen ), length( x ) );
@@ -256,6 +270,17 @@ tmp = 2*x;
 curLoc = 1;
 for i = 1:length( nonZLen ) 
     J(i, curLoc:(curLoc+nonZLen(i)-1)) = tmp(curLoc:(curLoc+nonZLen(i)-1));
+    curLoc = curLoc + nonZLen(i);
+end
+J=sparse(J);
+end
+
+function J = jacobian_L1 (x, auxdata)  
+nonZLen = auxdata{10};
+J = zeros( length( nonZLen ), length( x ) );
+curLoc = 1;
+for i = 1:length( nonZLen ) 
+    J(i, curLoc:(curLoc+nonZLen(i)-1)) = 1;
     curLoc = curLoc + nonZLen(i);
 end
 J=sparse(J);
