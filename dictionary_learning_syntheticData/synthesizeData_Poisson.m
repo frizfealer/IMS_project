@@ -1,4 +1,4 @@
-function [simData] = synthesizeData_Poisson( LINK_FUNC, SLEN, MLEN, HEIGHT, WIDTH, DTemplate, DOptions, WOptions, verbose )
+function [simData] = synthesizeData_Poisson( LINK_FUNC, CONSTRAINTS, SLEN, MLEN, HEIGHT, WIDTH, DTemplate, DOptions, WOptions, verbose )
 %synthesizeData_Poiss synthesize data with poiss noise
 %SLEN, MLEN, HEIGHT, WIDTH, the dimension of the data
 %DTemplate, the dictionary template from which we generate gD (a zero-one
@@ -39,10 +39,10 @@ params.coheMax = coheMax;
 if ~isempty(DTemplate)
     [SLEN, MLEN] = size(DTemplate);
     params.DTemplate = DTemplate;
-    [ gD, uDTemplate ] = synthesizeD( 'DTemplate', params, verbose );
+    [ gD, uDTemplate ] = synthesizeD( CONSTRAINTS, 'DTemplate', params, verbose );
 else
     params.SLEN = SLEN; params.MLEN = MLEN;
-    [ gD, uDTemplate ] = synthesizeD( 'random', params, verbose );
+    [ gD, uDTemplate ] = synthesizeD( CONSTRAINTS, 'random', params, verbose );
 end
 MLEN = size(gD, 2);
 %% setting W'sinput parameters

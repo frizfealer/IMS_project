@@ -1,4 +1,4 @@
-function [ gD, uDTemplate ] = synthesizeD( type, params, verbose )
+function [ gD, uDTemplate ] = synthesizeD( CONSTRAINTS, type, params, verbose )
 %synthesizeD synthesize dictionary
 %type: 'DTemplate'
 %params: DTemplate, 
@@ -140,7 +140,12 @@ elseif strcmp( type, 'random' ) == 1
         infElements = unique( infElements );
         availIdx(i) = 0;
         gD(moleculePAry, i) = abs( randn( length( moleculePAry ), 1 ) );
-        gD(:,i) = gD(:,i)/norm( gD(:,i) );
+        if strcmp( CONSTRAINTS, 'L2_SQUARE' ) == 1
+            gD(:,i) = gD(:,i)/norm( gD(:,i) );
+        elseif strcmp( CONSTRAINTS, 'L1' ) == 1
+            gD( gD(:, i) < 1, i ) = 0; 
+            gD(:,i) = gD(:,i)/norm( gD(:,i), 1 );
+        end
         if ~isempty( infElements )
             for j = infElements
                 alpha = 1e-1;
