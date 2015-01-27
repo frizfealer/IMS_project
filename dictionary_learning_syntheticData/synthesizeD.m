@@ -143,7 +143,11 @@ elseif strcmp( type, 'random' ) == 1
         if strcmp( CONSTRAINTS, 'L2_SQUARE' ) == 1
             gD(:,i) = gD(:,i)/norm( gD(:,i) );
         elseif strcmp( CONSTRAINTS, 'L1' ) == 1
-            gD( gD(:, i) < 1, i ) = 0; 
+            if length(find(gD(:,i)<1)) < SLEN
+                gD( gD(:, i) < 1, i ) = 0; 
+            else
+                gD(1:7, i) = 0;
+            end
             gD(:,i) = gD(:,i)/norm( gD(:,i), 1 );
         end
         if ~isempty( infElements )
