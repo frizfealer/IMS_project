@@ -59,6 +59,8 @@ if isempty( initVar )
     elseif strcmp( LINK_FUNC, 'identity' ) == 1
         z0 = Y;
         z0( z0 == 0 ) = 1e-32;
+    elseif strcmp( LINK_FUNC, 'log_gaussain' ) == 1
+        z0 = log(Y); z0(z0==-inf)=0; %initialize zo as log(Y)    
     end
     %if not in traing set, we shoud not initialize z0 according to it.
     %take the average values

@@ -17,6 +17,8 @@ elseif alphaFlag == 1
         targetFunc = @(Z0) Z0_termFunc_log( Y, Z0, rho, res1, scaleFac, vNum, coordXY );
     elseif strcmp( LINK_FUNC, 'identity' ) == 1
         targetFunc = @(Z0) Z0_termFunc_identity( Y, Z0, rho, res1, scaleFac, vNum, coordXY );
+    elseif strcmp( LINK_FUNC, 'log_gaussain' ) == 1
+        targetFunc = @(Z0) Z0_termFunc_log_gaussain( Y, Z0, rho, res1, scaleFac, vNum, coordXY );
     end
     if ~isempty( Z0_init )
         Z0Start = Z0_init(:);
@@ -45,13 +47,12 @@ elseif alphaFlag == 1
 %     options.TolFun=1e-6;
 %     options.TolX=1e-6;
 %     options.Algorithm='trust-region';
-%     options.Display='none';
+    options.Display='iter';
 %     options.Hessian='on';
 % %     options.Diagnostics = 'off';
 % %     options.HessUpdate='steepdesc';
 %      % options.UseParallel='always';
 %     options.GradObj='on';
-        options.Display = 'none';
 %     [ z0, ~ ] = fminunc( targetFunc, Z0Start, options );
      [ z0, ~ ] = minFunc( targetFunc, Z0Start, options );
     z0 = reshape( z0, sLen, nLen );
@@ -75,6 +76,14 @@ function [ val,grad, H ] = Z0_termFunc_identity( Y, Z0, rho, res1, scaleFac, vNu
 val = sum( scaleFac*( -Y.*log(Z0) + Z0 ) ) + rho / 2 * sum( (Z0 +res1).^2 );
 grad = scaleFac*(-Y./(Z0) + 1) + rho* ( Z0 + res1 );
 tmp = scaleFac*(Y./(Z0).^2) + rho;
+H = sparse( coordXY, coordXY, tmp, vNum, vNum );
+end
+
+function [ val,grad, H ] = Z0_termFunc_log_gaussain( Y, Z0, rho, res1, scaleFac, vNum, coordXY )
+residual = log(Y+1e-32) - Z0;
+val = sum( scaleFac*(residual).^2 ) + rho/2 * sum( (Z0+res1).^2 );
+grad = -2*scaleFac*(residual) + rho*(Z0 + res1);
+tmp = 2 + rho;
 H = sparse( coordXY, coordXY, tmp, vNum, vNum );
 end
 
