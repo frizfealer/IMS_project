@@ -57,7 +57,8 @@ elseif strcmp( LINK_FUNC, 'identity' ) == 1
     funcs.objective         = @objective_identity;
     funcs.gradient          = @gradient_identity;
 elseif strcmp( LINK_FUNC, 'log_gaussain' ) == 1    
-    
+    funcs.objective         = @objective_log_gaussain;
+    funcs.gradient          = @gradient_log_gaussain;
 end
 %the L2 square constraint
 if strcmp( CONSTRAINT, 'L2_SQUARE' ) == 1
@@ -221,6 +222,20 @@ f = sum( sum( -YT.* log(preY+1e-32) + preY ) ) * scaleFac;
 f = f + phi* sum(x);
 end
 
+function f = objective_log_gaussain(x, auxdata)
+%x is current D
+[Y, W, ~, nonZPosY, nonZPosX, phi, scaleFac , WT, YT, sTermT] = deal(auxdata{[1 2 3 5 6 7 8 12 15 16]});
+% D = sparse( nonZPosY, nonZPosX, x, size(Y, 1), size(W, 1) );
+% gPreY = staticTerm + D * W;
+% gEPreY = exp( gPreY );
+DT = sparse( nonZPosX, nonZPosY, x, size(W, 1), size(Y, 1) );
+preY = sTermT + WT * DT;
+% preY( preY == 0 ) = 1e-32;
+% f = -Y.* preY + ePreY;
+f = sum( sum( (log(YT+1e-32) - preY).^2 ) ) * scaleFac;
+f = f + phi* sum(x);
+end
+
 function gRes = gradient (x, auxdata)
 [Y, W, ~, ~, nonZPosY, nonZPosX, phi, scaleFac, nonZLen, WT, gRes, nonZIdx, YT, sTermT] = deal(auxdata{[1:8 10 12 13 14 15 16]});
 DT = sparse( nonZPosX, nonZPosY, x, size(W, 1), size(Y, 1) );
@@ -247,6 +262,21 @@ curLoc = 1;
 for i = 1:length(nonZIdx)
     idx = nonZIdx{i};
     gRes(curLoc:(curLoc+nonZLen(i)-1)) = -( ( YT(:, idx) ./ (preY(:, idx)+1e-32) )'*WT(:,i) ) + sum(WT(:, i));
+    curLoc = curLoc + nonZLen(i);
+end
+gRes = gRes*scaleFac + phi;
+end
+
+function gRes = gradient_log_gaussain(x, auxdata)
+[Y, W, ~, ~, nonZPosY, nonZPosX, phi, scaleFac, nonZLen, WT, gRes, nonZIdx, YT, sTermT] = deal(auxdata{[1:8 10 12 13 14 15 16]});
+DT = sparse( nonZPosX, nonZPosY, x, size(W, 1), size(Y, 1) );
+preY = sTermT + WT * DT;
+% gRes = (-Y+ePreY)*WT;
+% gRes = gRes(nonZPos);
+curLoc = 1;
+for i = 1:length(nonZIdx)
+    idx = nonZIdx{i};
+    gRes(curLoc:(curLoc+nonZLen(i)-1)) = -2*( log(YT(:, idx)+1e-32) - preY(:, idx) )'*WT(:,i);
     curLoc = curLoc + nonZLen(i);
 end
 gRes = gRes*scaleFac + phi;
