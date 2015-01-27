@@ -77,7 +77,7 @@ fprintf( 'Synthesize W...\n' );
 
 
 %% Generate Y
-gY = genY_Poisson( LINK_FUNC, gD, gW, gW0 );
+gY = genY_differentNoise( LINK_FUNC, gD, gW, gW0 );
 % gY = round(lambda);
 simData.gY = gY; simData.gW = gW; simData.gW0 = gW0; simData.gD = gD; simData.uDTemplate = uDTemplate; simData.usedElement = usedElement;
 end
