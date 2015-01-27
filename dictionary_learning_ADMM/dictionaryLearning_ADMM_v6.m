@@ -222,6 +222,7 @@ fprintf( 'Cluster number used to update = %d, ', CLUSTER_NUM );
 fprintf( 'SAVE_TEM_PERIOUD = %d, Inner iteration reduce flag = %d, ', SAVE_TEM_PERIOD, INNER_IT_RED_FLAG );
 %fprintf( 'LATE_UPDATE_FLAG = %d, LATE_UPDATE_PERCENT=%g, LATE_UPDATE_INTTHRES = %g, ', LATE_UPDATE_FLAG, LATE_UPDATE_PERCENT, LATE_UPDATE_INTTHRES  );
 fprintf( ['INIT_D= ', INIT_METHOD, '.\n'] );
+fprintf( ['LINK_FUNC= ', LINK_FUNC, '.\n'] );
 for it = 1:OUTER_IT_NUM
     fprintf( fID, 'iteration %d\n', it );
     if INNER_IT_RED_FLAG == 1

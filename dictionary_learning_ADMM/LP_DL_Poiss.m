@@ -56,7 +56,7 @@ elseif strcmp( LINK_FUNC, 'identity' ) == 1
         firstTwoTermsMat = firstTwoTermsMat - logFY(:, idx);
     end
 elseif strcmp( LINK_FUNC, 'log_gaussain' ) == 1
-    firstTwoTermsMat = (log(Y(:, idx)+1e-32)-preY(:, idx))^2;
+    firstTwoTermsMat = (log(Y(:, idx)+1e-32)-preY(:, idx)).^2;
 end
 if isempty( scaleFactor )
     scaleFactor = 1;
