@@ -47,7 +47,7 @@ elseif alphaFlag == 1
 %     options.TolFun=1e-6;
 %     options.TolX=1e-6;
 %     options.Algorithm='trust-region';
-    options.Display='iter';
+    options.Display='none';
 %     options.Hessian='on';
 % %     options.Diagnostics = 'off';
 % %     options.HessUpdate='steepdesc';
