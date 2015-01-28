@@ -20,7 +20,9 @@ elseif strcmp( linkFunc, 'log' ) == 1
     tmp = 1e-4*( val1/ (val2*1*10^-(ceil(log10(val2))) ) );
     minTheta = 1*10^-(ceil(log10(val2)))*tmp;
 elseif strcmp( linkFunc, 'log_gaussain' ) == 1
-    val1 = sum((log(Y(:)+1e-32)-preY(:)).^2);
+    ttt = log(Y);
+    ttt(ttt==-inf) = 0;
+    val1 = sum((ttt(:)-preY(:)).^2);
     val2 = (Rall*W(:,:)').^2;
     val2 = sum(val2(:));
     maxTheta = val1/val2*10;
