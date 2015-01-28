@@ -21,6 +21,15 @@ elseif strcmp( LINK_FUNC, 'identity' ) == 1
 elseif strcmp( LINK_FUNC, 'log_gaussain' ) == 1
 	lambda = gY;
     gY = exp( randn( size(lambda) )/1e3 + lambda );
+elseif strcmp( LINK_FUNC, 'negative_binomial' ) == 1
+    lambda = exp( gY );
+    %R: 1/alpha, P: 1/(1+alpha*lambda)
+    alpha = 20;
+    R = 1/alpha;
+    P = 1/(1+alpha*lambda);
+    gY = nbinrnd(R,P);
+    ins = sum( gW, 1 );
+    gY(:,ins==0) = 0;
 end
 if ~isempty( find( isinf(lambda), 1 ) )
     fprintf( 'the value of w is too high.\n' );
