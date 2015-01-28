@@ -15,6 +15,11 @@ elseif strcmp( linkFunc, 'log' ) == 1
     tmp = 1e-4*( val1/ (val2*1*10^-(ceil(log10(val2))) ) );
     minLambda = 1*10^-(ceil(log10(val2)))*tmp;
 elseif strcmp( linkFunc, 'log_gaussain' ) == 1
+    val1 = sum((log(Y(:)+1e-32)-preY(:)).^2);
+    val2 = sum(W(:));
+    maxLambda = val1/val2*10;
+    tmp = 1e-4*( val1/ (val2*1*10^-(ceil(log10(val2))) ) );
+    minLambda = 1*10^-(ceil(log10(val2)))*tmp;
 end
 
 
