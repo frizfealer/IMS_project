@@ -58,13 +58,13 @@ elseif strcmp( LINK_FUNC, 'identity' ) == 1
 elseif strcmp( LINK_FUNC, 'log_gaussain' ) == 1
     firstTwoTermsMat = (log(Y(:, idx)+1e-32)-preY(:, idx)).^2;
 elseif strcmp( LINK_FUNC, 'negative_binomial' ) == 1
-    alpha = 1e-4;
+    kappa = 1e-2;
     if length(varargin) == 2 && ~isempty( varargin{2} )%set varargin{1} as []
-        alpha = varargin{2};
+        kappa = varargin{2};
     end
-    dataTerms = -Y(:, idx)*log(alpha) - Y(:, idx).*preY(:, idx) ...
-        + (Y(:, idx)+1/alpha).*log( 1+alpha*exp(preY(:, idx)) ) ...
-        - gammaln( Y(:, idx)+1/alpha ) + gammaln( 1/alpha );
+    dataTerms = -Y(:, idx)*log(kappa) - Y(:, idx).*preY(:, idx) ...
+        + (Y(:, idx)+1/kappa).*log( 1+kappa*exp(preY(:, idx)) ) ...
+        - gammaln( Y(:, idx)+1/kappa ) + gammaln( 1/kappa );
     firstTwoTermsMat = dataTerms;
 end
 if isempty( scaleFactor )

@@ -1,4 +1,4 @@
-function [ finalD ] = updateD_v8_ipopt( LINK_FUNC, CONSTRAINT, inY, outW, outW0, D_init, DTemplate, aMatrix, HesOpt, phi, scaleFac, itNum, W_LOWER_BOUND )
+function [ finalD, kappa ] = updateD_v8_ipopt( LINK_FUNC, CONSTRAINT, inY, outW, outW0, D_init, DTemplate, aMatrix, HesOpt, phi, scaleFac, itNum, W_LOWER_BOUND, varargin )
 %updateD_v8 update the whole dictionary using fmincon without ADMM
 %aMatrix, a indicator matrix, with 1 means using in trainning and 0 means
 %using in testing
@@ -8,6 +8,7 @@ function [ finalD ] = updateD_v8_ipopt( LINK_FUNC, CONSTRAINT, inY, outW, outW0,
 %scaleFac, scalar, to make phi more controlable
 
 %% initialize variables
+kappa = [];
 [sLen, mLen] = size(D_init);
 aIdx = aMatrix(:)==1;
 Y = sparse(inY(:, aIdx));
@@ -59,6 +60,16 @@ elseif strcmp( LINK_FUNC, 'identity' ) == 1
 elseif strcmp( LINK_FUNC, 'log_gaussain' ) == 1    
     funcs.objective         = @objective_log_gaussain;
     funcs.gradient          = @gradient_log_gaussain;
+elseif strcmp( LINK_FUNC, 'negative_binomial' ) == 1
+    funcs.objective         = @objective_NB;
+    funcs.gradient          = @gradient_NB;
+    if ~isempty(varargin{1})
+        startKappa = varargin{1};
+    else
+        startKappa = 1e-2;
+    end
+    options.ipopt.max_iter         = 100;
+    MAX_IT = 3;
 end
 %the L2 square constraint
 if strcmp( CONSTRAINT, 'L2_SQUARE' ) == 1
@@ -185,8 +196,32 @@ sTermT = staticTerm';
 
 % options.auxdata = { Y, W, staticTerm, nonZPos, nonZPosY, nonZPosX, phi, scaleFac, nonZGrpInfo, nonZLen, jacobStruct, nonZYGrp, Wsq, HessianStruct };
 options.auxdata = { Y, W, staticTerm, nonZPos, nonZPosY, nonZPosX, phi, scaleFac, nonZGrpInfo, nonZLen, jacobStruct, WT, gRes, nonZIdx, YT, sTermT, gPreY, gEPreY};
-[x, info] = ipopt_auxdata(startD,funcs,options);
-rD(nonZPos) = x;
+if strcmp( LINK_FUNC, 'negative_binomial' ) == 1
+    kappa = startKappa;
+    preD = zeros( size(rD) );
+    it = 1;
+    YWT = Y*WT;
+    while max(abs(preD(:)-rD(:))) > 1e-6 && it <= MAX_IT
+        it = it + 1;
+        preD = rD;
+        preX = preD(nonZPos);   
+        options.auxdata{19} = kappa;
+        options.auxdata{20} = -YT*log(kappa);
+        options.auxdata{21} = gammaln( YT+1/kappa );
+        options.auxdata{22} = gammaln( 1/kappa );
+        options.auxdata{23} = YWT;
+        [x, info] = ipopt_auxdata(preX,funcs,options);
+        rD(nonZPos) = x;
+        options.Method='lbfgs';
+        options.Display = 'none';
+        % options.DerivativeCheck='on';
+        targetFunc_kappa = @(kappa) kappa_termFunc_NB( Y, rD, W, staticTerm, kappa );
+        [ kappa, ~ ] = minFunc( targetFunc_kappa, kappa, options );
+    end
+else
+    [x, info] = ipopt_auxdata(startD,funcs,options);
+    rD(nonZPos) = x;
+end
 % for i = 1:rMLen
 %     rD(:, i) = rD(:, i) / max( 1, norm( rD(:, i) ) ); 
 % end
@@ -236,6 +271,20 @@ f = sum( sum( (log(YT+1e-32) - preY).^2 ) ) * scaleFac;
 f = f + phi* sum(x);
 end
 
+function f = objective_NB(x, auxdata)
+%x is current D
+[Y, W, ~, nonZPosY, nonZPosX, phi, scaleFac , WT, YT, sTermT, kappa, YTdotlkappa, gamlnYT1kappa, gamln1kappa] = deal(auxdata{[1 2 3 5 6 7 8 12 15 16 19, 20, 21, 22]});
+% D = sparse( nonZPosY, nonZPosX, x, size(Y, 1), size(W, 1) );
+% gPreY = staticTerm + D * W;
+% gEPreY = exp( gPreY );
+DT = sparse( nonZPosX, nonZPosY, x, size(W, 1), size(Y, 1) );
+preY = sTermT + WT * DT;
+% preY( preY == 0 ) = 1e-32;
+% f = -Y.* preY + ePreY;
+f = sum( sum( -YTdotlkappa - YT.*preY + (YT+1/kappa).*log(1+kappa*exp(preY)) - gamlnYT1kappa + gamln1kappa ) ) * scaleFac;
+f = f + phi* sum(x);
+end
+
 function gRes = gradient (x, auxdata)
 [Y, W, ~, ~, nonZPosY, nonZPosX, phi, scaleFac, nonZLen, WT, gRes, nonZIdx, YT, sTermT] = deal(auxdata{[1:8 10 12 13 14 15 16]});
 DT = sparse( nonZPosX, nonZPosY, x, size(W, 1), size(Y, 1) );
@@ -280,6 +329,37 @@ for i = 1:length(nonZIdx)
     curLoc = curLoc + nonZLen(i);
 end
 gRes = gRes*scaleFac + phi;
+end
+
+function gRes = gradient_NB(x, auxdata)
+[Y, W, ~, ~, nonZPosY, nonZPosX, phi, scaleFac, nonZLen, WT, gRes, nonZIdx, YT, sTermT, kappa, YWT] = deal(auxdata{[1:8 10 12 13 14 15 16 19 23]});
+DT = sparse( nonZPosX, nonZPosY, x, size(W, 1), size(Y, 1) );
+preY = sTermT + WT * DT;
+ePreY = exp(preY);
+% gRes = (-Y+ePreY)*WT;
+% gRes = gRes(nonZPos);
+curLoc = 1;
+for i = 1:length(nonZIdx)
+    idx = nonZIdx{i};
+%     gRes(curLoc:(curLoc+nonZLen(i)-1)) = (( (YT(:, idx)+1/kappa).*(kappa*ePreY(:,idx))./(1+kappa*ePreY(:,idx)) )' )*WT(:, i) - YWT(idx, i);
+    gRes(curLoc:(curLoc+nonZLen(i)-1)) = (( (YT(:, idx)+1/kappa).*(ePreY(:,idx))./(1/kappa+ePreY(:,idx)) )' )*WT(:, i) - YWT(idx, i);
+    curLoc = curLoc + nonZLen(i);
+end
+gRes = gRes*scaleFac + phi;
+end
+
+function [ val, grad ] = kappa_termFunc_NB( Y, D, W, staticTerms, kappa )
+if kappa < 0
+    kappa = 1e-32;
+end
+preY = D*W+staticTerms;
+ePreY = exp(preY);
+lkappa = log(kappa);
+term1 = 1+kappa*ePreY;
+val = sum( sum( ( -Y*lkappa - Y.*ePreY + (Y+1/kappa).*log(term1) - gammaln(Y+1/kappa) + gammaln(1/kappa) ) ) );
+grad = (-sum(Y(:))/kappa - (1/kappa^2)*sum(log(term1(:))) + sum( (Y(:)+1/kappa).*ePreY(:)./term1(:) ) + (1/kappa^2)*sum(user_harmonic(Y(:)+1/kappa-1)-user_harmonic(1/kappa-1)) );
+% tmp = scaleFac*( (kappa*Y.*eZ0+eZ0)./(term1.^2) ) + rho;
+% H = sparse( coordXY, coordXY, tmp, vNum, vNum );
 end
 
 function c = constraints(x, auxdata)

@@ -216,7 +216,7 @@ elseif testCaseNum == 6
     WOptions.sparsePrec = 1;
     verbose = 0;
     LINK_FUNC = 'negative_binomial';
-    [simData] = synthesizeData_Poisson( LINK_FUNC, 'L1', SLEN, MLEN, HEIGHT, WIDTH, [], DOptions, WOptions, verbose );
+    [simData] = synthesizeData_Poisson( LINK_FUNC, 'L1', SLEN, MLEN, HEIGHT, WIDTH, [], DOptions, WOptions, verbose, 10 );
     %% test on updatez0_v4 function, no held out data
     alpha = ones(HEIGHT, WIDTH);
     inY = simData.gY;
@@ -225,10 +225,10 @@ elseif testCaseNum == 6
     gW = simData.gW;
     gW0 = simData.gW0;
     U0 = zeros( SLEN, HEIGHT*WIDTH );
-    curRho = 1;
+    curRho = 100;
     scaleFactor = 1;
-    Z0 = abs(randn( SLEN, HEIGHT*WIDTH )) + 1e-32;
-%     Z0 = simData.gD*gW(:,:);
+%     Z0 = abs(randn( SLEN, HEIGHT*WIDTH )) + 1e-32;
+    Z0 = simData.gD*gW(:,:);
     kappa = 1e-2;
     cnt = 1;
     firstVal = Z0_termFunc_NB( inY, Z0, kappa, curRho, gD, gW, gW0, U0, scaleFactor );

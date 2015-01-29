@@ -29,17 +29,17 @@ elseif alphaFlag == 1
         %     z0 = B+oset;
         %     z0Start = z0; z0Start(z0Start<0) = 1e-8;
     end
-    if length(varargin) >= 1
+    if length(varargin) >= 1 && ~isempty(varargin{1})
         itNum = varargin{1};
     else
         itNum = 1000;
     end
-    if length(varargin) >= 2
+    if length(varargin) >= 2 && ~isempty(varargin{2})
         options.Method = varargin{2};
     else
         options.Method = 'newton';
     end
-    if length(varargin) >= 3
+    if length(varargin) >= 3 && ~isempty(varargin{3})
         kappa = varargin{3};
     else
         kappa = 1e-2;
@@ -63,17 +63,21 @@ if strcmp( LINK_FUNC, 'negative_binomial' ) == 1
     prevZ0 = zeros( size(Z0Start) );
     z0 = Z0Start;
     it = 1;
-    MAX_IT = 100;
+    MAX_IT = 3;
+    options.MaxFunEvals= 500;
     while max(abs(z0(:)-prevZ0(:))) > 1e-6 && it <= MAX_IT
         %fprintf('%g\n', max(abs(z0(:)-prevZ0(:))) );
         prevZ0 = z0;
         it = it + 1;
-        targetFunc_Z0 = @(Z0) Z0_termFunc_NB( Y, Z0, kappa, rho, res1, scaleFac, vNum, coordXY );
+        Ydotlkappa = Y*log(kappa);
+        gamlnYkappa = gammaln(Y+1/kappa);
+        gamln1kappa = gammaln(1/kappa);
+        targetFunc_Z0 = @(Z0) Z0_termFunc_NB( Y, Z0, kappa, rho, res1, scaleFac, vNum, coordXY, Ydotlkappa, gamlnYkappa, gamln1kappa);
         options.Method = 'newton';
         [ z0, ~ ] = minFunc( targetFunc_Z0, prevZ0, options );
         options.Method='lbfgs';
         % options.DerivativeCheck='on';
-        targetFunc_kappa = @(kappa) kappa_termFunc_NB( Y, z0, kappa, rho, res1, scaleFac, vNum, coordXY );
+        targetFunc_kappa = @(kappa) kappa_termFunc_NB( Y, z0, kappa, rho, res1, scaleFac );
         [ kappa, ~ ] = minFunc( targetFunc_kappa, kappa, options );  
     end
     z0 = reshape( z0, sLen, nLen );
@@ -113,18 +117,17 @@ tmp = 2*scaleFac + rho;
 H = sparse( coordXY, coordXY, tmp, vNum, vNum );
 end
 
-function [ val,grad, H ] = Z0_termFunc_NB( Y, Z0, kappa, rho, res1, scaleFac, vNum, coordXY )
+function [ val,grad, H ] = Z0_termFunc_NB( Y, Z0, kappa, rho, res1, scaleFac, vNum, coordXY, Ydotlkappa, gamlnYkappa, gamln1kappa )
 Z0(Z0<0) = 1e-32;
 eZ0 = exp(Z0);
-lkappa = log(kappa);
 term1 = 1+kappa*eZ0;
-val = sum( scaleFac*( -Y*lkappa - Y.*Z0 + (Y+1/kappa).*log(term1) - gammaln(Y+1/kappa) + gammaln(1/kappa) ) ) + rho/2 * sum( (Z0+res1).^2 );
+val = sum( scaleFac*( -Ydotlkappa - Y.*Z0 + (Y+1/kappa).*log(term1) - gamlnYkappa + gamln1kappa ) ) + rho/2 * sum( (Z0+res1).^2 );
 grad = scaleFac*(-Y + (Y+1/kappa).*(kappa*eZ0)./term1)+ rho*(Z0 + res1);
 tmp = scaleFac*( (kappa*Y.*eZ0+eZ0)./(term1.^2) ) + rho;
 H = sparse( coordXY, coordXY, tmp, vNum, vNum );
 end
 
-function [ val, grad ] = kappa_termFunc_NB( Y, Z0, kappa, rho, res1, scaleFac, vNum, coordXY )
+function [ val, grad ] = kappa_termFunc_NB( Y, Z0, kappa, rho, res1, scaleFac )
 if kappa < 0
     kappa = 1e-32;
 end
@@ -132,7 +135,7 @@ eZ0 = exp(Z0);
 lkappa = log(kappa);
 term1 = 1+kappa*eZ0;
 val = sum( scaleFac*( -Y*lkappa - Y.*Z0 + (Y+1/kappa).*log(term1) - gammaln(Y+1/kappa) + gammaln(1/kappa) ) ) + rho/2 * sum( (Z0+res1).^2 );
-grad = scaleFac*(-sum(Y)/kappa - (1/kappa^2)*sum(log(term1)) + sum( (Y+1/kappa).*eZ0./term1 ) + (1/kappa^2)*sum(harmonic(Y+1/kappa-1)-harmonic(1/kappa-1)) );
+grad = scaleFac*(-sum(Y)/kappa - (1/kappa^2)*sum(log(term1)) + sum( (Y+1/kappa).*eZ0./term1 ) + (1/kappa^2)*sum(user_harmonic(Y+1/kappa-1)-user_harmonic(1/kappa-1)) );
 % tmp = scaleFac*( (kappa*Y.*eZ0+eZ0)./(term1.^2) ) + rho;
 % H = sparse( coordXY, coordXY, tmp, vNum, vNum );
 end

@@ -16,15 +16,18 @@ end
 %% variable setting
 newWInfo = [];
 if ~isempty(varargin)  
-    if length(varargin) == 3
+    if length(varargin) >= 3
         Wtol = varargin{2};
         D_LOWER_BOUND = varargin{3};
     else
         Wtol = 5*1e-3;
         D_LOWER_BOUND = 1e-2;
     end
-    if length(varargin) == 4
+    if length(varargin) >= 4
         newWInfo = varargin{4};
+    end
+    if length(varargin) >= 5
+        kappa = varargin{5};
     end
 else
     Wtol = 5*1e-3;
@@ -120,7 +123,7 @@ tmpEye(end, end) = 0;
 aPartofCforUW = sparse( [moutD; tmpEye] );
 %% main optimization process
 for j = 1:BlkDS.blkNum
-    LPAryADMM(1, j) = LP_DL_Poiss( LINK_FUNC, aMatrix, Y, W, W0, D, lambda, 0, theta, scaleFactor, logFY, 0 );
+    LPAryADMM(1, j) = LP_DL_Poiss( LINK_FUNC, aMatrix, Y, W, W0, D, lambda, 0, theta, scaleFactor, logFY, 0, kappa );
     loc = BlkDS.B2GMap{j};
     curY = Y(:, loc);
     curW = W(:, loc);
@@ -161,8 +164,8 @@ for j = 1:BlkDS.blkNum
         [ curZ0(:, locAlpha0) ] = updatez0_v4( 0, LINK_FUNC, curY(:, locAlpha0), curZ0(:, locAlpha0), D, ...
             curW(:, locAlpha0), curW0(locAlpha0), curU0(:, locAlpha0), curRho, scaleFactor );
         %update for training data
-        [ curZ0(:, locAlpha1) ] = updatez0_v4( 1, LINK_FUNC, curY(:, locAlpha1), curZ0(:, locAlpha1), D, ...
-            curW(:, locAlpha1), curW0(locAlpha1), curU0(:, locAlpha1), curRho, scaleFactor );
+        [ curZ0(:, locAlpha1), kappa ] = updatez0_v4( 1, LINK_FUNC, curY(:, locAlpha1), curZ0(:, locAlpha1), D, ...
+            curW(:, locAlpha1), curW0(locAlpha1), curU0(:, locAlpha1), curRho, scaleFactor, [], [], kappa );
         %% update z1
         fprintf( 'updating z1... ' );
         preZ1 = curZ1;
@@ -248,7 +251,7 @@ for j = 1:BlkDS.blkNum
         u1(:, loc) = curU1;
         z2{j} = curZ2;
         u2{j} = curU2;
-        LPAryADMM(itNumADMM+1, j) = LP_DL_Poiss( LINK_FUNC, aMatrix, Y, W, W0, D, lambda, 0, theta, scaleFactor, logFY, 0 );
+        LPAryADMM(itNumADMM+1, j) = LP_DL_Poiss( LINK_FUNC, aMatrix, Y, W, W0, D, lambda, 0, theta, scaleFactor, logFY, 0, kappa );
         if j == BlkDS.blkNum
             if ~isempty(varargin) %WHistFlag == 1
                 if varargin{1} == 1
@@ -277,6 +280,7 @@ WResStruct.LPAry = LPAryADMM;
 WResStruct.rhoAry = curRhoAry;
 WResStruct.resAry = resRecAry;
 WResStruct.WDiff = tmp;
+WResStruct.kappa = kappa;
 if ~isempty(varargin) %WHistFlag == 1
     if varargin{1} == 1
         WResStruct.WHistCell = WHistCell;

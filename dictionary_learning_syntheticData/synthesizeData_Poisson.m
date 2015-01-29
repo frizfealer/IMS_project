@@ -1,4 +1,4 @@
-function [simData] = synthesizeData_Poisson( LINK_FUNC, CONSTRAINTS, SLEN, MLEN, HEIGHT, WIDTH, DTemplate, DOptions, WOptions, verbose )
+function [simData] = synthesizeData_Poisson( LINK_FUNC, CONSTRAINTS, SLEN, MLEN, HEIGHT, WIDTH, DTemplate, DOptions, WOptions, verbose, varargin )
 %synthesizeData_Poiss synthesize data with poiss noise
 %SLEN, MLEN, HEIGHT, WIDTH, the dimension of the data
 %DTemplate, the dictionary template from which we generate gD (a zero-one
@@ -77,7 +77,11 @@ fprintf( 'Synthesize W...\n' );
 
 
 %% Generate Y
-gY = genY_differentNoise( LINK_FUNC, gD, gW, gW0 );
+if strcmp( LINK_FUNC, 'negative_binomial' ) == 1
+    gY = genY_differentNoise( LINK_FUNC, gD, gW, gW0, varargin{1} );
+else
+    gY = genY_differentNoise( LINK_FUNC, gD, gW, gW0 );
+end
 % gY = round(lambda);
 simData.gY = gY; simData.gW = gW; simData.gW0 = gW0; simData.gD = gD; simData.uDTemplate = uDTemplate; simData.usedElement = usedElement;
 end

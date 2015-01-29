@@ -1,4 +1,4 @@
-function [ gY ] = genY_differentNoise( LINK_FUNC, gD, gW, gW0 )
+function [ gY ] = genY_differentNoise( LINK_FUNC, gD, gW, gW0, varargin )
 %genY generate Y from gD, gW, gW0 with poisson noise
 %   Detailed explanation goes here
 [SLEN] = size(gD, 1);
@@ -24,9 +24,13 @@ elseif strcmp( LINK_FUNC, 'log_gaussain' ) == 1
 elseif strcmp( LINK_FUNC, 'negative_binomial' ) == 1
     lambda = exp( gY );
     %R: 1/alpha, P: 1/(1+alpha*lambda)
-    alpha = 20;
-    R = 1/alpha;
-    P = 1/(1+alpha*lambda);
+    if length(varargin) == 1
+        kappa = varargin{1};
+    else
+        kappa = 1e-2;
+    end
+    R = 1/kappa;
+    P = 1/(1+kappa*lambda);
     gY = nbinrnd(R,P);
     ins = sum( gW, 1 );
     gY(:,ins==0) = 0;

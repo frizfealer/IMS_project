@@ -189,7 +189,11 @@ else
     W0 = initVar.W0;
     z0 = initVar.z0; z1 = initVar.z1; z2 = initVar.z2;
 end
-
+if strcmp( LINK_FUNC, 'negative_binomial' ) == 1
+    kappa = 1e-2;
+else
+    kappa = [];
+end
 %% managing matlab pool
 if matlabpool('size') == 0 && CLUSTER_NUM > 1
     matlabpool( 'open', CLUSTER_NAME, CLUSTER_NUM );
@@ -215,7 +219,7 @@ if strcmp( LINK_FUNC, 'identity' ) == 1
 end
 % set all scaleFactor to 1
 scaleFactor = 1;
-LPAry(1) = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
+LPAry(1) = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG, kappa );
 fprintf( 'parameters: outer iteration number = %d, ', OUTER_IT_NUM );
 fprintf( 'ADMM iteration number = %d, D-update iteration number = %d, Hessian flag for update D = %d, ', ADMM_IT_NUM, UP_D_IT_NUM, HES_FLAG );
 fprintf( 'Cluster number used to update = %d, ', CLUSTER_NUM );
@@ -252,10 +256,11 @@ for it = 1:OUTER_IT_NUM
     end
     %the second to the last parameter is a flag for each W output in ADMM steps
     %the last parameter is the tolerance of w in ADMM steps
-    uW_Res = updateW_ADMM_v3( LINK_FUNC, inY, D, aMatrix, M_ADMM_IT_NUM, lambda, theta, USE_L1_FLAG, logFY, curVar, scaleFactor, 0, W_TOL, D_LOWER_BOUND, newWInfo );
+    uW_Res = updateW_ADMM_v3( LINK_FUNC, inY, D, aMatrix, M_ADMM_IT_NUM, lambda, theta, USE_L1_FLAG, logFY, curVar, scaleFactor, 0, W_TOL, D_LOWER_BOUND, newWInfo, kappa );
     W = uW_Res.W;
     W0 = uW_Res.W0;
     z0 = uW_Res.z0; z1 = uW_Res.z1; z2 = uW_Res.z2;
+    kappa = uW_Res.kappa;
     
     %% if W is too low, make corresponding D to zero
     for i = 1:size(W, 1)
@@ -265,9 +270,9 @@ for it = 1:OUTER_IT_NUM
     end
     %% update D
     validMap = BlkDS.indMap .* aMatrix;
-    [ D ]= updateD_v8_ipopt( LINK_FUNC, D_CONSTRAINTS, inY, W, W0, D, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM, W_LOWER_BOUND );
+    [ D ]= updateD_v8_ipopt( LINK_FUNC, D_CONSTRAINTS, inY, W, W0, D, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM, W_LOWER_BOUND, kappa );
 
-    LPAry(it+1) = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
+    LPAry(it+1) = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG, kappa );
     tmp1 = max( abs( W(:)-prevW(:) ) );
     tmp2 = max( abs( W0(:)-prevW0(:) ) );
     tmp3 = max( abs( D(:)-prevD(:) ) );
@@ -277,6 +282,7 @@ for it = 1:OUTER_IT_NUM
         expRec.theta = theta; expRec.lambda = lambda; expRec.phi = phi;
         expRec.diffW = tmp1; expRec.diffW0 = tmp2; expRec.diffD = tmp3;
         expRec.param = param; expRec.aMatrix = aMatrix;
+        expRec.kappa = kappa;
 %         expRec.rhoCell = rhoCell; expRec.resRecCell = resRecCell;
         save( snapFilePath, 'expRec' );
     end
@@ -315,6 +321,7 @@ expRec.LPAry = LPAry; expRec.z0 = z0; expRec.z1 = z1; expRec.z2 = z2;
 expRec.theta = theta; expRec.lambda = lambda; expRec.phi = phi; 
 expRec.diffW = tmp1; expRec.diffW0 = tmp2; expRec.diffD = tmp3;
 expRec.param = param; expRec.aMatrix = aMatrix;
+expRec.kappa = kappa;
 %expRec.rhoCell = rhoCell; expRec.resRecCell = resRecCell;
 
 end
