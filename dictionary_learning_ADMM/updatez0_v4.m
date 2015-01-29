@@ -63,8 +63,9 @@ if strcmp( LINK_FUNC, 'negative_binomial' ) == 1
     prevZ0 = zeros( size(Z0Start) );
     z0 = Z0Start;
     it = 1;
-    MAX_IT = 3;
-    options.MaxFunEvals= 500;
+    MAX_IT = 1;
+    options.MaxFunEvals= 1000;
+%     kappa = 1e-2;
     while max(abs(z0(:)-prevZ0(:))) > 1e-6 && it <= MAX_IT
         %fprintf('%g\n', max(abs(z0(:)-prevZ0(:))) );
         prevZ0 = z0;
@@ -77,8 +78,8 @@ if strcmp( LINK_FUNC, 'negative_binomial' ) == 1
         [ z0, ~ ] = minFunc( targetFunc_Z0, prevZ0, options );
         options.Method='lbfgs';
         % options.DerivativeCheck='on';
-        targetFunc_kappa = @(kappa) kappa_termFunc_NB( Y, z0, kappa, rho, res1, scaleFac );
-        [ kappa, ~ ] = minFunc( targetFunc_kappa, kappa, options );  
+%         targetFunc_kappa = @(kappa) kappa_termFunc_NB( Y, z0, kappa, rho, res1, scaleFac );
+%         [ kappa, ~ ] = minFunc( targetFunc_kappa, kappa, options );  
     end
     z0 = reshape( z0, sLen, nLen );
 else

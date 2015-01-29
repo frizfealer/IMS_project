@@ -69,7 +69,7 @@ elseif strcmp( LINK_FUNC, 'negative_binomial' ) == 1
         startKappa = 1e-2;
     end
     options.ipopt.max_iter         = 100;
-    MAX_IT = 3;
+    MAX_IT = 10;
 end
 %the L2 square constraint
 if strcmp( CONSTRAINT, 'L2_SQUARE' ) == 1
@@ -356,7 +356,7 @@ preY = D*W+staticTerms;
 ePreY = exp(preY);
 lkappa = log(kappa);
 term1 = 1+kappa*ePreY;
-val = sum( sum( ( -Y*lkappa - Y.*ePreY + (Y+1/kappa).*log(term1) - gammaln(Y+1/kappa) + gammaln(1/kappa) ) ) );
+val = sum( sum( ( -Y*lkappa - Y.*preY + (Y+1/kappa).*log(term1) - gammaln(Y+1/kappa) + gammaln(1/kappa) ) ) );
 grad = (-sum(Y(:))/kappa - (1/kappa^2)*sum(log(term1(:))) + sum( (Y(:)+1/kappa).*ePreY(:)./term1(:) ) + (1/kappa^2)*sum(user_harmonic(Y(:)+1/kappa-1)-user_harmonic(1/kappa-1)) );
 % tmp = scaleFac*( (kappa*Y.*eZ0+eZ0)./(term1.^2) ) + rho;
 % H = sparse( coordXY, coordXY, tmp, vNum, vNum );

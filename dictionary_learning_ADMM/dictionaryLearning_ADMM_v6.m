@@ -189,11 +189,7 @@ else
     W0 = initVar.W0;
     z0 = initVar.z0; z1 = initVar.z1; z2 = initVar.z2;
 end
-if strcmp( LINK_FUNC, 'negative_binomial' ) == 1
-    kappa = 1e-2;
-else
-    kappa = [];
-end
+kappa = 1e-4;
 %% managing matlab pool
 if matlabpool('size') == 0 && CLUSTER_NUM > 1
     matlabpool( 'open', CLUSTER_NAME, CLUSTER_NUM );
@@ -260,7 +256,6 @@ for it = 1:OUTER_IT_NUM
     W = uW_Res.W;
     W0 = uW_Res.W0;
     z0 = uW_Res.z0; z1 = uW_Res.z1; z2 = uW_Res.z2;
-    kappa = uW_Res.kappa;
     
     %% if W is too low, make corresponding D to zero
     for i = 1:size(W, 1)
@@ -270,7 +265,7 @@ for it = 1:OUTER_IT_NUM
     end
     %% update D
     validMap = BlkDS.indMap .* aMatrix;
-    [ D ]= updateD_v8_ipopt( LINK_FUNC, D_CONSTRAINTS, inY, W, W0, D, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM, W_LOWER_BOUND, kappa );
+    [ D, kappa ]= updateD_v8_ipopt( LINK_FUNC, D_CONSTRAINTS, inY, W, W0, D, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM, W_LOWER_BOUND, kappa );
 
     LPAry(it+1) = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG, kappa );
     tmp1 = max( abs( W(:)-prevW(:) ) );
@@ -282,8 +277,10 @@ for it = 1:OUTER_IT_NUM
         expRec.theta = theta; expRec.lambda = lambda; expRec.phi = phi;
         expRec.diffW = tmp1; expRec.diffW0 = tmp2; expRec.diffD = tmp3;
         expRec.param = param; expRec.aMatrix = aMatrix;
-        expRec.kappa = kappa;
-%         expRec.rhoCell = rhoCell; expRec.resRecCell = resRecCell;
+        %         expRec.rhoCell = rhoCell; expRec.resRecCell = resRecCell;
+        if strcmp( LINK_FUNC, 'negative_binomial' ) == 1
+            expRec.kappa = kappa;
+        end
         save( snapFilePath, 'expRec' );
     end
     if ~isempty( D_HIST_PATH )
@@ -321,7 +318,9 @@ expRec.LPAry = LPAry; expRec.z0 = z0; expRec.z1 = z1; expRec.z2 = z2;
 expRec.theta = theta; expRec.lambda = lambda; expRec.phi = phi; 
 expRec.diffW = tmp1; expRec.diffW0 = tmp2; expRec.diffD = tmp3;
 expRec.param = param; expRec.aMatrix = aMatrix;
-expRec.kappa = kappa;
+if strcmp( LINK_FUNC, 'negative_binomial' ) == 1
+    expRec.kappa = kappa;
+end
 %expRec.rhoCell = rhoCell; expRec.resRecCell = resRecCell;
 
 end
