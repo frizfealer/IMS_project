@@ -1,4 +1,4 @@
-function [ w_w0 ] = update_w_w0_v4( z0, u0, z1, u1, z2, u2, CforUW, rho, w_init )
+function [ w_w0 ] = update_w_w0_v4( z0, u0, z1, u1, z2, u2, CforUW, rho, w_init, offsetFlag )
 %update_w_w0_ver3 update w and w0 in the whole sample
 %11172014 write up
 %using glmnet, the speed is at 0.7s, with five lambda value
@@ -8,9 +8,16 @@ function [ w_w0 ] = update_w_w0_v4( z0, u0, z1, u1, z2, u2, CforUW, rho, w_init 
 w_init = w_init(:);
 % mLen = length(w_init);
 nLen = size(z0, 2);
-z2 = [z2 zeros( size(z2, 1), 1 ) ];
-u2 = [u2 zeros( size(u2, 1), 1 ) ];
-tmpD = [z0+1/rho*u0; z1+1/rho*u1; sparse(1, nLen) ];
+if offsetFlag == 1
+    z2 = [z2 zeros( size(z2, 1), 1 ) ];
+    u2 = [u2 zeros( size(u2, 1), 1 ) ];
+    tmpD = [z0+1/rho*u0; z1+1/rho*u1; sparse(1, nLen) ];
+else
+    z2 = [z2 ];
+    u2 = [u2];
+    tmpD = [z0+1/rho*u0; z1+1/rho*u1; ];
+end
+
 d = tmpD(:);
 tmpD = (z2+1/rho*u2)';
 d = [d; tmpD(:)];
@@ -49,7 +56,7 @@ options.cl=[0;inf];
 options.lambda = [3 2 1 0];
 options.intr=0;
 options.standardize=0;
-%options.thresh = 1e-16; %this value cause this program stucks.
+%options.thresh = 1e-16;
 options.thresh = 1e-8;
 options.lambda_min = 0;
 fit = glmnet( CforUW,d, 'gaussian', options );

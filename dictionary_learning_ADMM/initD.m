@@ -1,4 +1,4 @@
-function [ outD ] = initD( dataCube, DTemplate, method, DIonName )
+function [ outD ] = initD( dataCube, DTemplate, method, DIonName, L1Flag )
 % initD initialize dictioanry
 % dataCube, input tensor data
 % DTemplate, matrix with [sLen mLen]
@@ -80,7 +80,12 @@ elseif strcmp( method, 'NNMF' ) == 1
 %                     outD(:, i) = outD(:, i)./ max( norm( outD(cSpec, i), 2 ), 1 );
 %                 end
                 outD(cSpec, i) = w;
-                outD(:, i) = outD(:, i)./ norm( outD(cSpec, i), 2 );
+%                 outD(cSpec, i) = 1;
+                if L1Flag == 0
+                    outD(:, i) = outD(:, i)./ norm( outD(cSpec, i), 2 );
+                elseif L1Flag == 1
+                    outD(:, i) = outD(:, i)./ norm( outD(cSpec, i), 1 );
+                end
             end
             
             %% display and debugging...

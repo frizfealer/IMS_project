@@ -164,6 +164,11 @@ if isfield( param, 'D_CONSTRAINTS' )
 else
     D_CONSTRAINTS = 'L1';
 end
+if isfield( param, 'OFFSET_FLAG' ) 
+    OFFSET_FLAG = param.OFFSET_FLAG;
+else
+    OFFSET_FLAG = 0;
+end
 
 
 LPAry = zeros( 1, OUTER_IT_NUM+1 );
@@ -176,7 +181,11 @@ dfWVec = zeros( 1, OUTER_IT_NUM );
 
 %% initialize all variable
 if isempty(initVar)
-    [ D ] = initD( inY, DTemplate, INIT_METHOD, D_ION_NAME );
+    if strcmp( D_CONSTRAINTS, 'L1' ) == 1
+        [ D ] = initD( inY, DTemplate, INIT_METHOD, D_ION_NAME, 1 );
+    else
+        [ D ] = initD( inY, DTemplate, INIT_METHOD, D_ION_NAME, 0 );
+    end
     DHistCell{1} = D;
     W = sparse( zeros( mLen, hei*wid ) );
     W0 = sparse( zeros( hei, wid ) );
@@ -252,7 +261,7 @@ for it = 1:OUTER_IT_NUM
     end
     %the second to the last parameter is a flag for each W output in ADMM steps
     %the last parameter is the tolerance of w in ADMM steps
-    uW_Res = updateW_ADMM_v3( LINK_FUNC, inY, D, aMatrix, M_ADMM_IT_NUM, lambda, theta, USE_L1_FLAG, logFY, curVar, scaleFactor, 0, W_TOL, D_LOWER_BOUND, newWInfo, kappa );
+    uW_Res = updateW_ADMM_v4( LINK_FUNC, inY, D, aMatrix, M_ADMM_IT_NUM, lambda, theta, USE_L1_FLAG, logFY, curVar, scaleFactor, OFFSET_FLAG, 0, W_TOL, D_LOWER_BOUND, newWInfo, kappa );
     W = uW_Res.W;
     W0 = uW_Res.W0;
     z0 = uW_Res.z0; z1 = uW_Res.z1; z2 = uW_Res.z2;
@@ -277,10 +286,7 @@ for it = 1:OUTER_IT_NUM
         expRec.theta = theta; expRec.lambda = lambda; expRec.phi = phi;
         expRec.diffW = tmp1; expRec.diffW0 = tmp2; expRec.diffD = tmp3;
         expRec.param = param; expRec.aMatrix = aMatrix;
-        %         expRec.rhoCell = rhoCell; expRec.resRecCell = resRecCell;
-        if strcmp( LINK_FUNC, 'negative_binomial' ) == 1
-            expRec.kappa = kappa;
-        end
+%         expRec.rhoCell = rhoCell; expRec.resRecCell = resRecCell;
         save( snapFilePath, 'expRec' );
     end
     if ~isempty( D_HIST_PATH )

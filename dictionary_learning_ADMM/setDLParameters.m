@@ -25,5 +25,6 @@ param.W_TOL = 5*1e-3;
 param.D_TOL = 5*1e-3;
 param.linkFunc = 'identity';
 param.D_CONSTRAINTS = 'L1';
+param.OFFSET_FLAG = 1;
 end
 
