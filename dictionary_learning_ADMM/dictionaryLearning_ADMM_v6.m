@@ -42,7 +42,7 @@ end
 if isfield( param, 'ADMM_IT_NUM' )
     ADMM_IT_NUM = param.ADMM_IT_NUM;
 else
-    ADMM_IT_NUM = 200;
+    ADMM_IT_NUM = 100;
 end
 if isfield( param, 'UP_D_IT_NUM' )
     UP_D_IT_NUM = param.UP_D_IT_NUM;
@@ -158,17 +158,17 @@ if isfield( param, 'linkFunc' )
 else
     LINK_FUNC = 'identity';
 end
-%for Dictionary element's constraints
-if isfield( param, 'D_CONSTRAINTS' )
-    D_CONSTRAINTS = param.D_CONSTRAINTS;
-else
-    D_CONSTRAINTS = 'L1';
-end
-if isfield( param, 'OFFSET_FLAG' ) 
-    OFFSET_FLAG = param.OFFSET_FLAG;
-else
-    OFFSET_FLAG = 0;
-end
+%for Dictionary element's constraints not using this for now
+% if isfield( param, 'D_CONSTRAINTS' )
+%     D_CONSTRAINTS = param.D_CONSTRAINTS;
+% else
+%     D_CONSTRAINTS = 'L1';
+% end
+% if isfield( param, 'OFFSET_FLAG' ) 
+%     OFFSET_FLAG = param.OFFSET_FLAG;
+% else
+%     OFFSET_FLAG = 0;
+% end
 
 
 LPAry = zeros( 1, OUTER_IT_NUM+1 );
@@ -181,11 +181,11 @@ dfWVec = zeros( 1, OUTER_IT_NUM );
 
 %% initialize all variable
 if isempty(initVar)
-    if strcmp( D_CONSTRAINTS, 'L1' ) == 1
-        [ D ] = initD( inY, DTemplate, INIT_METHOD, D_ION_NAME, 1 );
-    else
-        [ D ] = initD( inY, DTemplate, INIT_METHOD, D_ION_NAME, 0 );
-    end
+    %     if strcmp( D_CONSTRAINTS, 'L1' ) == 1
+    %         [ D ] = initD( inY, DTemplate, INIT_METHOD, D_ION_NAME, 1 );
+    %     else
+    [ D ] = initD( inY, DTemplate, INIT_METHOD, D_ION_NAME, 0 );
+    %end
     DHistCell{1} = D;
     W = sparse( zeros( mLen, hei*wid ) );
     W0 = sparse( zeros( hei, wid ) );
@@ -261,7 +261,8 @@ for it = 1:OUTER_IT_NUM
     end
     %the second to the last parameter is a flag for each W output in ADMM steps
     %the last parameter is the tolerance of w in ADMM steps
-    uW_Res = updateW_ADMM_v4( LINK_FUNC, inY, D, aMatrix, M_ADMM_IT_NUM, lambda, theta, USE_L1_FLAG, logFY, curVar, scaleFactor, OFFSET_FLAG, 0, W_TOL, D_LOWER_BOUND, newWInfo, kappa );
+    uW_Res = updateW_ADMM_v3( LINK_FUNC, inY, D, aMatrix, M_ADMM_IT_NUM, lambda, theta, USE_L1_FLAG, logFY, curVar, scaleFactor, 0, W_TOL, D_LOWER_BOUND, newWInfo, kappa );
+    %uW_Res = updateW_ADMM_v4( LINK_FUNC, inY, D, aMatrix, M_ADMM_IT_NUM, lambda, theta, USE_L1_FLAG, logFY, curVar, scaleFactor, OFFSET_FLAG, 0, W_TOL, D_LOWER_BOUND, newWInfo, kappa );
     W = uW_Res.W;
     W0 = uW_Res.W0;
     z0 = uW_Res.z0; z1 = uW_Res.z1; z2 = uW_Res.z2;
@@ -274,7 +275,7 @@ for it = 1:OUTER_IT_NUM
     end
     %% update D
     validMap = BlkDS.indMap .* aMatrix;
-    [ D, kappa ]= updateD_v8_ipopt( LINK_FUNC, D_CONSTRAINTS, inY, W, W0, D, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM, W_LOWER_BOUND, kappa );
+    [ D, kappa ]= updateD_v8_ipopt( LINK_FUNC, 'L2_SQUARE', inY, W, W0, D, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM, W_LOWER_BOUND, kappa );
 
     LPAry(it+1) = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG, kappa );
     tmp1 = max( abs( W(:)-prevW(:) ) );
@@ -310,7 +311,7 @@ for it = 1:OUTER_IT_NUM
         end
     end
     % one of the conditions must be satisfied to stop outer loops
-    if abs(LPAry(it+1)-LPAry(it)) <= LP_TOL || ...
+    if abs(LPAry(it+1)-LPAry(it)) <= LP_TOL*LPAry(it) || ...
         ( max( tmp1, tmp2 ) < W_TOL &&  tmp3 < D_TOL ) %|| ...
         %( tmp3 < D_TOL && dfWHoldFlag == 1 ) 
         break;

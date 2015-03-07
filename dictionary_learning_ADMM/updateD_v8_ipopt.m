@@ -73,9 +73,9 @@ elseif strcmp( LINK_FUNC, 'negative_binomial' ) == 1
 end
 %the L2 square constraint
 if strcmp( CONSTRAINT, 'L2_SQUARE' ) == 1
-    % funcs.constraints  = @constraints;
-    % funcs.jacobian          = @jacobian;
-    % funcs.jacobianstructure = @jacobianstructure;
+    funcs.constraints  = @constraints;
+    funcs.jacobian          = @jacobian;
+    funcs.jacobianstructure = @jacobianstructure;
     %the L1 constraint
 elseif strcmp( CONSTRAINT, 'L1' ) == 1
     funcs.constraints  = @constraints_L1;

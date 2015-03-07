@@ -149,7 +149,7 @@ for j = 1:BlkDS.blkNum
         curRho = curRhoAry(itNumADMM, j);
         %% update W
         fprintf( 'updating W... ' );
-        [ w_w0 ] = update_w_w0_v4( curZ0, curU0, curZ1, curU1, curZ2, curU2, CforUW, curRho, [curW; curW0(:)'] );
+        [ w_w0 ] = update_w_w0_v4( curZ0, curU0, curZ1, curU1, curZ2, curU2, CforUW, curRho, [curW; curW0(:)'], 1 );
         tmp = reshape(w_w0, mLen+1, length(loc));
         curW = tmp(1:(end-1), :);
         curW0 = tmp(end,:);
