@@ -1,13 +1,21 @@
 function [ tBlkDS ] = conBLKDS( dataCube )
-%% conDSBlkIdx construct Data Structure of block information
-%Input:
-%bImg, a binary image
-%Output: a data structure conatins the following fields:
-%blkNum: # blocks
-%B2WMap: Block id to Grid coordinates mapping
-%G2BMap: Grid coordinate to Block ids mapping
-%indMap: indicator for all location in the grid, with 1 means computation
-%needed.
+%--------------------------------------------------------------------------
+% conDSBlk construct Data Structure of block information
+%--------------------------------------------------------------------------
+% DESCRIPTION:
+%   Since there is only a subset of grids in the data cube having data, we
+%   only want to train our model on this subset of grids.
+%
+% INPUT ARGUMENTS:
+%   dataCube, size of [s w h], that is #(m/z)*width*height
+% OUTPUT ARGUMENTS:
+%   tBlkDS a data structrue having fields:
+%       blkNum: # communities
+%       B2WMap: a mapping from a block ID to grid coordinates
+%       G2BMap: a mapping from a grid coordinate to a block ID, with empty
+%       means no data in the coordinate.
+%       indMap: indicator for all grids with one means having signals
+%       (computation needed) and zero means no signals.
 
 bImg = sum( dataCube, 1 );
 [~, HEI, WID] = size( dataCube );

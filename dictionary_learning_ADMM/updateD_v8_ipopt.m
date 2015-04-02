@@ -14,11 +14,12 @@ aIdx = aMatrix(:)==1;
 Y = sparse(inY(:, aIdx));
 W = outW(:, aIdx);
 staticTerm = repmat( outW0(aIdx)', sLen, 1 );
-ins = zeros( mLen, 1 );
-for i = 1:mLen
-    ins(i) = max( W(i, :) );
-end
-rMIdx = find( ins > W_LOWER_BOUND );
+% ins = zeros( mLen, 1 );
+% for i = 1:mLen
+%     ins(i) = max( W(i, :) );
+% end
+% rMIdx = find( ins > ins*W_LOWER_BOUND );
+rMIdx = 1:mLen;
 rMLen = length( rMIdx );
 W = W( rMIdx, : );
 rD = full( D_init( :, rMIdx ) );
@@ -253,7 +254,7 @@ DT = sparse( nonZPosX, nonZPosY, x, size(W, 1), size(Y, 1) );
 preY = sTermT + WT * DT;
 % preY( preY == 0 ) = 1e-32;
 % f = -Y.* preY + ePreY;
-f = sum( sum( -YT.* log(preY+1e-32) + preY ) ) * scaleFac;
+f = sum( sum( -YT.* log(preY+1e-8) + preY ) ) * scaleFac;
 f = f + phi* sum(x);
 end
 
@@ -267,7 +268,7 @@ DT = sparse( nonZPosX, nonZPosY, x, size(W, 1), size(Y, 1) );
 preY = sTermT + WT * DT;
 % preY( preY == 0 ) = 1e-32;
 % f = -Y.* preY + ePreY;
-f = sum( sum( (log(YT+1e-32) - preY).^2 ) ) * scaleFac;
+f = sum( sum( (log(YT+1e-8) - preY).^2 ) ) * scaleFac;
 f = f + phi* sum(x);
 end
 

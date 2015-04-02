@@ -1,14 +1,27 @@
 function [ val, meanVal, stdVal ] = LP_DL_Poiss( LINK_FUNC, aMatrix, Y, W, W0, D, lambda, phi, theta, scaleFactor, logFY, varargin )
-%LP_DL_Poiss Compute the negative log posterior for
-%Dictioanry Learning with Poisson distribution
-% aMatrix [h w], an indicator matrix of with 1 means for tranining
-% Y [s h w], W [m h w] or W[m h*w], W0 [h, w] or W0 [h*w, 1], D [s m]
-% lambda, phi, theta, scalar
-% logFY [s h w], log of the factorial of Y, can be empty
-% scaleFactor [s h w], the scaling factor (0~1) for the log-likelihood
-% terms, if empty, then the value is 1
-% shoud minimize this value
-% meanFlag:, is == 1, compute mean of LL and std of LL for input samples
+%--------------------------------------------------------------------------
+%LP_DL_Poiss: ompute the negative log posterior for Dictioanry Learning 
+%with the Poisson distribution
+%--------------------------------------------------------------------------
+% DESCRIPTION:
+%   In current version, this function only computes the negative log
+%   posterior under the Poisson distribution setting. This value should be
+%   minimized with dictionary learning.
+%
+% INPUT ARGUMENTS:
+%   aMatrix [h w], an indicator matrix of with 1 means for tranining
+%   Y [s h w], W [m h w] or W[m h*w], W0 [h, w] or W0 [h*w, 1], D [s m]
+%   lambda, phi, theta, scalar
+%   logFY [s h w], log of the factorial of Y, can be empty
+%   scaleFactor [s h w], the scaling factor (0~1) for the log-likelihood
+%   terms, if empty, then the value is 1.
+%   meanFlag, additional variables, if it is == 1, 
+%   compute mean of LL and std of LL for input samples.
+% OUTPUT ARGUMENTS:
+%   val, total negative log posterior in the model.
+%   meanVal, stdVal, mean and standard deviation of log posterior of the
+%   input.
+
 [sLen, hei, wid] = size( Y );
 
 preY = D* W(:, :) + repmat( W0(:)', sLen, 1 ); %preY [s ,w*h]
@@ -51,7 +64,8 @@ if strcmp( LINK_FUNC, 'log' ) == 1
     end
 elseif strcmp( LINK_FUNC, 'identity' ) == 1
     %     preY(preY==0)=1e-32;
-    firstTwoTermsMat = -Y(:, idx).*log( preY(:, idx) + 1e-32 ) + preY(:, idx);
+    tmp = log( preY(:, idx) + 1e-8 );
+    firstTwoTermsMat = -Y(:, idx).*tmp + preY(:, idx);
     if ~isempty( logFY )
         firstTwoTermsMat = firstTwoTermsMat - logFY(:, idx);
     end
@@ -74,7 +88,7 @@ firstTwoTermsMat = firstTwoTermsMat * scaleFactor;
 firstTwoTerms = sum( sum( firstTwoTermsMat ) );
 % firstTwoTerms sum( Y(:).*z0(:) - exp(z0(:)) ) 
 val = firstTwoTerms + lambda * norm( W(:), 1 ) ...
-    + phi * norm( D(:), 1 ) + theta * ( norm( Whminus(:), 2 ) + norm( Wwminus(:), 2 ) ); %theta * ( norm( Whminus(:), 1 ) + norm( Wwminus(:), 1 ) );
+    + phi * norm( D(:), 1 ) + theta * ( norm( Whminus(:) )^2 + norm( Wwminus(:) )^2 ); %theta * ( norm( Whminus(:), 1 ) + norm( Wwminus(:), 1 ) );
 if length(varargin) == 1 && varargin{1} == 1 % meanFlag == 1
     meanVal = mean(firstTwoTermsMat(:) + lambda * norm( W(:), 1 ) ...
     + phi * norm( D(:), 1 ) + theta * ( norm( Whminus(:), 1 ) + norm( Wwminus(:), 1 ) ) );

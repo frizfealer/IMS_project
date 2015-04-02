@@ -1,32 +1,37 @@
-function [ expRec ] = dictionaryLearning_ADMM_v6( inY, initVar, DTemplate, logFY, lambda, theta, phi, aMatrix, BlkDS, filePath, snapFilePath, param, varargin )
-%dictionaryLearning_ADMM_v6 dictionary learning with ADMM formulation
-%with set z0 = D*W+W0, z1 = w1, z2 = RW';
-%Dictioanry Learning with Poisson distribution
-%input:
-% inY [s h w]
-% initVar data structure with all initialization, has the fields:
-% initVar.outW initVar.outW0 initVar.outD 
-% initVar.u0 initVar.u1 initVar.z0 initVar.z1, initVar.z2, initVar.u2
-%DTemplate the dictionary pattern you want to have [s m]
-%We choose the appropriate dictionary pattern before this function
-%lambda, theta, phi: scalar
-%filePath: the output file path, if output to screen, set []
-%aMatrix [h w] a Matrix indicate which grid is held out, 1 means trainning,
-%0 means testing
-%snapFilePath: file path for snapshot according to SAVE_TEM_PERIOD
-%BlkDS, structures with two fields,
-%   bIdx is the block to location index
-%   mapW2B is the location to block index
-%   blkNum the number of the blocks
-%output:
-%expRec is a structure contains 
-%LPAry [itNum+1, 1], a log posterior record after each iteration, the first
-%one is the log posterior from orignal iteration
-%outW, outW0, outD, z0, z1, u0, u1
-%rho, theta, lambda
+function [ expRec ] = dictionaryLearning_ADMM_v6_2( inY, initVar, DTemplate, logFY, lambda, theta, phi, aMatrix, BlkDS, filePath, snapFilePath, param )
+%--------------------------------------------------------------------------
+% dictionaryLearning_ADMM_v6_2: dictionary learning with ADMM formulation 
+% version 6 for ISMB 2015
+%--------------------------------------------------------------------------
+% DESCRIPTION:
+%   The main function of the algorithm. Poisson distribution.
+%   ADMM setting: z0 = D*W+W0, z1 = w1, z2 = RW';
+% INPUT ARGUMENTS:
+%   inY, input data cube, size of [s w h], that is #(m/z)*width*height
+%   initVar, data structure with all initialization, has the fields:
+%   initVar.outW initVar.outW0 initVar.outD 
+%   initVar.u0 initVar.u1 initVar.z0 initVar.z1, initVar.z2, initVar.u2
+%   DTemplate, the dictionary pattern you want to have [s m], generatd from
+%   genDTemplate_v3
+%   lambda, theta, phi: scalar, hyper-parameters
+%   filePath, the output file path, if output to screen, set []
+%   aMatrix, [h w] a indicator matrix generated from leaveoutCBPatternsData_v2
+%   snapFilePath, file path for snapshot according to SAVE_TEM_PERIOD
+%   BlkDS, data cube structre variable generated from conBLKDS
+%   param, all parameters
+% OUTPUT ARGUMENTS:
+%   expRec, a data structure contains:
+%   1. D, dictionary. 2. W, weight. 3. W0, intercept.
+%   4. z0, z1, z2, please see the formulation of ADMM
+%   5. lambda, theta, phi, hyper-parameters used in this model.
+%   6. diffW: maximun difference of W between last two loops.
+%   7. diffD: maximun differece of D between last two loops.
+%   8. param: input parameters. 9. aMatrix: input a matrix
+%   LPAry [itNum+1, 1], a log posterior record after each iteration, 
+%   the first one is the log posterior from orignal iteration.
+
 [~, hei, wid] = size(inY);
 [mLen] = size(DTemplate ,2);
-
 %% set output path, and iteration number
 if ~isempty(filePath)
     fID = fopen(filePath, 'w');
@@ -34,6 +39,7 @@ else
     fID = 1;
 end
 
+%% set all parameters
 if isfield( param, 'OUTER_IT_NUM')
     OUTER_IT_NUM = param.OUTER_IT_NUM;
 else
@@ -49,22 +55,22 @@ if isfield( param, 'UP_D_IT_NUM' )
 else
     UP_D_IT_NUM = 200;
 end
-if isfield( param, 'HES_FLAG' )
+if isfield( param, 'HES_FLAG' ) %under construction
     HES_FLAG = param.HES_FLAG;
 else
     HES_FLAG = 1;
 end
-if isfield( param, 'CLUSTER_NUM' )
-    CLUSTER_NUM = param.CLUSTER_NUM;
-else
-    CLUSTER_NUM = 1;
-end
+% if isfield( param, 'CLUSTER_NUM' ) %deprecated
+%     CLUSTER_NUM = param.CLUSTER_NUM;
+% else
+%     CLUSTER_NUM = 1;
+% end
 if isfield( param, 'SAVE_TEM_PERIOD' )
     SAVE_TEM_PERIOD = param.SAVE_TEM_PERIOD;
 else
     SAVE_TEM_PERIOD = 3;
 end
-if isfield( param, 'INNER_IT_RED_FLAG' )
+if isfield( param, 'INNER_IT_RED_FLAG' ) %deprecated
     INNER_IT_RED_FLAG = param.INNER_IT_RED_FLAG;
 else
     INNER_IT_RED_FLAG = 0;
@@ -84,11 +90,11 @@ end
 % else
 %     LATE_UPDATE_INTTHRES = 0.8;
 % end
-if isfield( param, 'CLUSTER_NAME' )
-    CLUSTER_NAME = param.CLUSTER_NAME;
-else
-    CLUSTER_NAME = 'local';
-end
+% if isfield( param, 'CLUSTER_NAME' ) %deprecated
+%     CLUSTER_NAME = param.CLUSTER_NAME;
+% else
+%     CLUSTER_NAME = 'local';
+% end
 if isfield( param, 'INIT_D' )
     INIT_METHOD = param.INIT_D;
 else
@@ -106,22 +112,22 @@ else
 end
 DHistCell = cell( OUTER_IT_NUM+1, 1 );
 WHistCell = cell( OUTER_IT_NUM+1, 1 );
-if isfield( param, 'D_ION_NAME' )
+if isfield( param, 'D_ION_NAME' ) %deprecated
     D_ION_NAME = param.D_ION_NAME;
 else
     D_ION_NAME = [];
 end
-if isfield( param, 'LATE_UPDATE_IT_PREC' )
+if isfield( param, 'LATE_UPDATE_IT_PREC' ) %deprecated
     LATE_UPDATE_IT_PREC = param.LATE_UPDATE_IT_PREC;
 else
     LATE_UPDATE_IT_PREC = 0.8;
 end
-if isfield( param, 'USE_L1_FLAG' )
+if isfield( param, 'USE_L1_FLAG' ) %deprecated, always using 0
     USE_L1_FLAG = param.USE_L1_FLAG;
 else
     USE_L1_FLAG = 1;
 end
-if isfield( param, 'W_lOWERBOUND' )
+if isfield( param, 'W_LOWER_BOUND' )
     W_LOWER_BOUND = param.W_LOWER_BOUND;
 else
     W_LOWER_BOUND = 1e-2;
@@ -141,18 +147,18 @@ if isfield( param, 'D_TOL' )
 else
     D_TOL = 1e-3;
 end
-if isfield( param, 'D_lOWERBOUND' )
+if isfield( param, 'D_LOWER_BOUND' )
     D_LOWER_BOUND = param.D_LOWER_BOUND;
 else
     D_LOWER_BOUND = 1e-2;
 end
-%for second-round dictionary learning
+%for second-round dictionary learning, under construction
 if isfield( param, 'newWInfo' )
     newWInfo = param.newWInfo;
 else
     newWInfo = [];
 end
-%for link function
+%for link function, under construction, only valid for 'identity'
 if isfield( param, 'linkFunc' )
     LINK_FUNC = param.linkFunc;
 else
@@ -184,7 +190,7 @@ if isempty(initVar)
     %     if strcmp( D_CONSTRAINTS, 'L1' ) == 1
     %         [ D ] = initD( inY, DTemplate, INIT_METHOD, D_ION_NAME, 1 );
     %     else
-    [ D ] = initD( inY, DTemplate, INIT_METHOD, D_ION_NAME, 0 );
+    [ D ] = initD( inY, DTemplate, INIT_METHOD, [], 0 );
     %end
     DHistCell{1} = D;
     W = sparse( zeros( mLen, hei*wid ) );
@@ -198,11 +204,11 @@ else
     W0 = initVar.W0;
     z0 = initVar.z0; z1 = initVar.z1; z2 = initVar.z2;
 end
-kappa = 1e-4;
+% kappa = 1e-4;
 %% managing matlab pool
-if matlabpool('size') == 0 && CLUSTER_NUM > 1
-    matlabpool( 'open', CLUSTER_NAME, CLUSTER_NUM );
-end
+% if matlabpool('size') == 0 && CLUSTER_NUM > 1
+%     matlabpool( 'open', CLUSTER_NAME, CLUSTER_NUM );
+% end
 %%managing late update for some dictionary elements
 % if LATE_UPDATE_FLAG == 1
 %     [ rSet ] = estimateDRelevant( inY, outD, DTemplate, BlkDS.indMap, LATE_UPDATE_PERCENT, LATE_UPDATE_INTTHRES, D_ION_NAME  );
@@ -223,11 +229,10 @@ if strcmp( LINK_FUNC, 'identity' ) == 1
     scaleFactor = 1;
 end
 % set all scaleFactor to 1
-scaleFactor = 1;
-LPAry(1) = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG, kappa );
+LPAry(1) = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
 fprintf( 'parameters: outer iteration number = %d, ', OUTER_IT_NUM );
 fprintf( 'ADMM iteration number = %d, D-update iteration number = %d, Hessian flag for update D = %d, ', ADMM_IT_NUM, UP_D_IT_NUM, HES_FLAG );
-fprintf( 'Cluster number used to update = %d, ', CLUSTER_NUM );
+% fprintf( 'Cluster number used to update = %d, ', CLUSTER_NUM );
 fprintf( 'SAVE_TEM_PERIOUD = %d, Inner iteration reduce flag = %d, ', SAVE_TEM_PERIOD, INNER_IT_RED_FLAG );
 %fprintf( 'LATE_UPDATE_FLAG = %d, LATE_UPDATE_PERCENT=%g, LATE_UPDATE_INTTHRES = %g, ', LATE_UPDATE_FLAG, LATE_UPDATE_PERCENT, LATE_UPDATE_INTTHRES  );
 fprintf( ['INIT_D= ', INIT_METHOD, '.\n'] );
@@ -259,24 +264,44 @@ for it = 1:OUTER_IT_NUM
         curVar.W = uW_Res.W; curVar.W0 = uW_Res.W0;
         curVar.z0 = uW_Res.z0; curVar.z1 = uW_Res.z1; curVar.z2 = uW_Res.z2;
     end
+    
     %the second to the last parameter is a flag for each W output in ADMM steps
     %the last parameter is the tolerance of w in ADMM steps
-    uW_Res = updateW_ADMM_v3( LINK_FUNC, inY, D, aMatrix, M_ADMM_IT_NUM, lambda, theta, USE_L1_FLAG, logFY, curVar, scaleFactor, 0, W_TOL, D_LOWER_BOUND, newWInfo, kappa );
-    %uW_Res = updateW_ADMM_v4( LINK_FUNC, inY, D, aMatrix, M_ADMM_IT_NUM, lambda, theta, USE_L1_FLAG, logFY, curVar, scaleFactor, OFFSET_FLAG, 0, W_TOL, D_LOWER_BOUND, newWInfo, kappa );
+    uW_Res = updateW_ADMM_v3_2( LINK_FUNC, inY, D, aMatrix, M_ADMM_IT_NUM, lambda, theta, USE_L1_FLAG, logFY, curVar, scaleFactor, 0, W_TOL, D_LOWER_BOUND, newWInfo );
+    if uW_Res.stuckFlag == 1
+        expRec.WStuckFlag = 1;
+        break;
+    else
+        expRec.WStuckFlag = 0;
+    end
+    %ensure sparsity in W
+    uW_Res.W( uW_Res.W < W_LOWER_BOUND ) = 0;
     W = uW_Res.W;
     W0 = uW_Res.W0;
     z0 = uW_Res.z0; z1 = uW_Res.z1; z2 = uW_Res.z2;
     
-    %% if W is too low, make corresponding D to zero
-    for i = 1:size(W, 1)
-        if max(W(i,:)) < W_LOWER_BOUND
-            D( DTemplate(:,i)==1, i) = 1e-32;
-        end
-    end
     %% update D
     validMap = BlkDS.indMap .* aMatrix;
-    [ D, kappa ]= updateD_v8_ipopt( LINK_FUNC, 'L2_SQUARE', inY, W, W0, D, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM, W_LOWER_BOUND, kappa );
-
+    before = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
+    [ D, kappa ]= updateD_v8_ipopt( LINK_FUNC, 'L2_SQUARE', inY, W, W0, D, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM, W_LOWER_BOUND );
+    after = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
+    
+    cnt = 0;
+    expRec.DStuckFlag = 0;
+    while after-before > 0
+        if cnt == 5
+            expRec.DStuckFlag = 1;
+            break;
+        end
+        cnt = cnt + 1;
+        [ D, kappa ]= updateD_v8_ipopt( LINK_FUNC, 'L2_SQUARE', inY, W, W0, D, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM, W_LOWER_BOUND, kappa );
+        after = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG, kappa );
+    end
+    if expRec.DStuckFlag == 1
+        break;
+    end
+    
+    
     LPAry(it+1) = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG, kappa );
     tmp1 = max( abs( W(:)-prevW(:) ) );
     tmp2 = max( abs( W0(:)-prevW0(:) ) );
@@ -303,16 +328,16 @@ for it = 1:OUTER_IT_NUM
     for i = 1:length(ins)
         ins(i) = max( W(i,:) );
     end
-    dfWVec(it) = length( find( ins > W_LOWER_BOUND ) );
-    dfWHoldFlag = 0;
-    if mod( it, 10 ) == 0
-        if isempty( find( diff( dfWVec((it-10+1):it))  ~= 0, 1 ) )
-            dfWHoldFlag = 1;
-        end
-    end
+%     dfWVec(it) = length( find( ins > W_LOWER_BOUND ) );
+%     dfWHoldFlag = 0;
+%     if mod( it, 10 ) == 0
+%         if isempty( find( diff( dfWVec((it-10+1):it))  ~= 0, 1 ) )
+%             dfWHoldFlag = 1;
+%         end
+%     end
     % one of the conditions must be satisfied to stop outer loops
     if abs(LPAry(it+1)-LPAry(it)) <= LP_TOL*LPAry(it) || ...
-        ( max( tmp1, tmp2 ) < W_TOL &&  tmp3 < D_TOL ) %|| ...
+        ( max( tmp1, tmp2 ) < max( tmp1, tmp2 )*W_TOL &&  tmp3 < D_TOL ) %|| ...
         %( tmp3 < D_TOL && dfWHoldFlag == 1 ) 
         break;
     end

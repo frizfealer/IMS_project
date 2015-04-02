@@ -43,8 +43,6 @@ fprintf( 'generating DTemplate...\n' );
 while ~isempty(oInMolMZ)
     cMZ = oInMolMZ(1);
     for j = 1:size(mapping, 1)
-         possibleRelatedPeaks = mapping(j,:)+cMZ;
-            [ mVec ] = computeMapping( possibleRelatedPeaks', inpeakMZ', errRange );
             mapD = computeMap( mappingFunc, mzAxis, mapping(j,:), cMZ, indMat, 5e-4 );
             curPeak = mapD( ~isnan( mapD ) );
             if isempty( DTemplate )
