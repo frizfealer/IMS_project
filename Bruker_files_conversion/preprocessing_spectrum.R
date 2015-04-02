@@ -1,4 +1,4 @@
-MALDI_IMS_preprocessing <- function( iPath, outputPath, conPeakSelectFlag, binningFlag ) {
+MALDI_IMS_preprocessing_spectrum <- function( iPath, outputPath, peakPickingFlag, binningFlag ) {
 #usage:
 #e.g. inputFilePath = "D:\\Users\\YeuChern\\Dropbox\\unc\\CS\\RA\\Project_dictionaryLearning_IMS\\data\\2013_Bmyc_Paeni_Early_LP\\2013_Bmyc_Paeni_Early_LP_nopp.mzML"
 #e.g. outputPath = "D:\\"
@@ -6,7 +6,6 @@ MALDI_IMS_preprocessing <- function( iPath, outputPath, conPeakSelectFlag, binni
 	#need MALDIquant and MALDIquantForeign libraries
 	library("MALDIquant")
 	library("MALDIquantForeign")
-	library("MassSpecWavelet")
 	# args <- commandArgs(trailingOnly = TRUE)
 	# iPath <- args[1]
 	#iPath="D:\\Users\\YeuChern\\Dropbox\\unc\\CS\\RA\\Project_dictionaryLearning_IMS\\data\\2013 Bmyc Paeni Early LP_nopp.mzML"
@@ -59,17 +58,7 @@ MALDI_IMS_preprocessing <- function( iPath, outputPath, conPeakSelectFlag, binni
 	# }
 	writeLines( 'Checking if the length of spectrum is equal...' );
 	#some location has smaller # m/z, because MALDIQuant remove negative m/z value
-	tSta = table(sapply(s, length));
-	tSta
-	maxMZLen = as.numeric( names(tSta)[length(tSta)] );
-	for(i in 1:length(s))
-	{
-		if( length( mass(s[[i]]) ) == maxMZLen )
-		{
-			maxMZVec = mass(s[[i]]);
-			break;
-		}
-	}
+	table(sapply(s, length))
 	#correction
 	for (i in 1:length(s))
 	{
@@ -100,7 +89,7 @@ MALDI_IMS_preprocessing <- function( iPath, outputPath, conPeakSelectFlag, binni
 	# }
 	# ddd = read.table(file="D:\\Users\\YeuChern\\Dropbox\\unc\\CS\\RA\\Project_dictionaryLearning_IMS\\data\\2013_Bmyc_Paeni_Early_LP\\rawData_dump_from_bruker\\2013 Bmyc Paeni Early LP_0_R00X055Y015_1.txt", header = FALSE, sep = " " );
 
-	#preprocessing for one single spectrum						
+	# preprocessing for one single spectrum						
 	# pData = list()
 	# for (i in 1:length(s))
 	# {
@@ -108,12 +97,12 @@ MALDI_IMS_preprocessing <- function( iPath, outputPath, conPeakSelectFlag, binni
 		# s1 = s[[i]]
 		# s2 <- transformIntensity(s1, method="sqrt")
 		# s3 <- smoothIntensity(s2, method="MovingAverage", halfWindowSize=2)
-		# spectra <- smoothIntensity(spectra, method="SavitzkyGolay", halfWindowSize=10)
+		#spectra <- smoothIntensity(spectra, method="SavitzkyGolay", halfWindowSize=10)
 		# s4 <- removeBaseline(s3, method="SNIP", iterations=100)
 		# p <- detectPeaks(s4, method="MAD", halfWindowSize=20, SNR=2.5)
 		# pData[[i]]=p
 	# }
-	#drawing preprocessing results
+	##drawing preprocessing results
 	# par(mfrow=c(2,3))
 	# xlim <- range(mass(s1)) # use same xlim on all plots for better comparison
 	# plot(s1, main="1: raw", sub="", xlim=xlim)
@@ -122,7 +111,7 @@ MALDI_IMS_preprocessing <- function( iPath, outputPath, conPeakSelectFlag, binni
 	# plot(s4, main="4: baseline correction", sub="", xlim=xlim)
 	# plot(s4, main="5: peak detection", sub="", xlim=xlim)
 	# points(p)
-	# ## label top 20 peaks
+	# label top 20 peaks
 	# top20 <- intensity(p) %in% sort(intensity(p), decreasing=TRUE)[1:20]
 	# labelPeaks(p, index=top20, underline=TRUE)
 	# plot(p, main="6: peak plot", sub="", xlim=xlim)
@@ -130,7 +119,6 @@ MALDI_IMS_preprocessing <- function( iPath, outputPath, conPeakSelectFlag, binni
 	# par(mfrow=c(1,1))
 
 	pData = list()
-	pDataClass = list();
 	for (i in 1:length(s))
 	{
 		print(i)
@@ -138,126 +126,58 @@ MALDI_IMS_preprocessing <- function( iPath, outputPath, conPeakSelectFlag, binni
 		# whether to do normalization or not
 		#s2 <- transformIntensity(s1, method="sqrt")
 		# s3 <- smoothIntensity(s2, method="MovingAverage", halfWindowSize=2)
-		# writeLines( 'preprocessing and peak picking...' );
-		# p <- detectPeaks(s1, method="MAD", halfWindowSize=20, SNR=3)
-		# pData[[i]]=p
-		SNR.Th = 2;
-		peakInfo <- peakDetectionCWT(intensity(s1), SNR.Th=SNR.Th, nearbyPeak=TRUE);
-		majorPeakInfo = peakInfo$majorPeakInfo
-		betterPeakInfo <- tuneInPeakInfo(intensity(s1), majorPeakInfo)
-		pData[[i]] = betterPeakInfo$peakIndex
-		pData[[i]] = unique( pData[[i]]);
-		pDataClass[[i]] <- createMassPeaks( mass=mass(s1)[ pData[[i]] ], intensity=intensity(s1)[ pData[[i]] ], 
-		metaData=list(name="peaks from CWT") )
-		#plotPeak(intensity(s1), betterPeakInfo$peakIndex, range=c(1,length(intensity(s1))), main=paste('identitifed peak for surfactin LN') );
-	}
-	#ppp = binPeaks( pDataClass, method="strict", tolerance=0.0005)
-	#ddd = intensityMatrix( ppp, s )
-	#ddd = t(ddd)
-	#mmm = as.double(row.names(ddd))
-	dataMatrix = intensityMatrix( pDataClass, s )
-	dataMatrix = t(dataMatrix)
-	peakMZVec = as.double(row.names(dataMatrix));
-	peakMZVec2 = c();
-	for ( i in 1:length(s) )
-	{
-		peakMZVec2 = c( peakMZVec2, mass(pDataClass[[i]]) )
-	}
-	peakMZVec2 = sort(unique(peakMZVec2));
-	indMatrix = matrix(nrow = dim(dataMatrix)[1], ncol = dim(dataMatrix)[2]); 
-	#dataMatrix2 = matrix(nrow = length(peakMZVec2), ncol = dim(dataMatrix)[2]); 
-	for ( i in 1:length(s) )
-	{
-		idx = which( peakMZVec2 %in% mass(pDataClass[[i]]) )
-		indMatrix[,i]=0;
-		indMatrix[idx,i]=1;
-		# dataMatrix2[,i] = 0;
-		# dataMatrix2[idx,i] = intensity(pDataClass[[i]])
-	}
-	if( binningFlag == 1 )
-	{
-		writeLines( 'binning...' );
-		ins = rowSums( dataMatrix );
-		dOrd = order( ins, decreasing=TRUE );
-		tol = 5e-4;
-		dPMZ = peakMZVec[dOrd];
-		mPMZ = vector( mode="integer", length = length(dPMZ) );
-		indVec = vector( mode="integer", length = length(dPMZ) );
-		test = vector( mode="integer", length = length(dPMZ) );
-		curPeakID = 1
-		while( length(dPMZ) != 0 )
-		{
-			print(curPeakID)
-			lMZ = dPMZ[1];
-			rMZ = dPMZ[which( dPMZ >= lMZ-lMZ*tol & dPMZ <= lMZ+lMZ*tol )];
-			rMZIdx = which( peakMZVec %in% rMZ );
-			indVec[rMZIdx] = curPeakID;
-			mPMZ[curPeakID] = mean(rMZ);
-			test[curPeakID] = length(rMZIdx);
-			curPeakID = curPeakID + 1;
-			rDOrdSet = which( dPMZ %in% rMZ );
-			dPMZ = dPMZ[-rDOrdSet];
-		}
-		#checking, test function
-		# for( i in 1:max(indVec) )
+		# if( smoothFlag == 1 )
 		# {
-			# tmp = which( indVec == i );
-			# if ( length(tmp) > 1 )
-			# {
-				# difference = diff(tmp) == 1;
-				# if( any(difference==FALSE) )
-				# {
-					# print(i)
-				# }
-			# }
+			# s1 <- smoothIntensity(s1, method="SavitzkyGolay", halfWindowSize=10)
 		# }
-		peakNum = max(indVec);
-		tmp = mPMZ;
-		mPMZ = vector( mode="integer", length = peakNum );
-		mPMZ = tmp[1:peakNum];
-		mPMZ = sort( mPMZ );
-		mDataMatrix = matrix( 0, length(mPMZ), length(s) )
-		mNonSDataMatrix = matrix( 0, length(mPMZ), length(s) )
-		tmp = unique(indVec);
-		for( i in 1:length(s) )
-		{
-			temp = tapply(dataMatrix[,i], indVec, max)
-			mDataMatrix[,i]=temp[tmp];
-		}
-	} else
-	{
-		mDataMatrix = dataMatrix;
-		mPMZ = peakMZVec;
-	}
-	
-	
-	if( conPeakSelectFlag == 1 )
-	{
-		writeLines( 'computing consensus peak at 1%...' );
-		PEAK_INT_THRES = 10;
-		cVec = vector( mode = "numeric", length = length(mPMZ) )
-		#check if pData[[i]] having the maximun set of peaks
-		for (i in 1:length(s))
-		{
-			#tMassIdx = which( mass(s[[i]]) %in% mass(pData[[i]]) )
-			iPeakMassIdx = which( mDataMatrix[,i] >= PEAK_INT_THRES );
-			cVec[iPeakMassIdx] = cVec[iPeakMassIdx]+1;
-		}
-		#consensus peak strategy
-		thresPrec = 0.01;
-		tNum = round( length(s)*thresPrec )
-		pIdx = which(cVec>=tNum)
+		# else
+		# {
 
-		mPMZ = mPMZ[pIdx]
-		mDataMatrix = mDataMatrix[pIdx,]
-	} else
-	{
-		mPMZ = mPMZ;
-		mDataMatrix = mDataMatrix;
-	}
-	#write.table(dataMatrix, "dataMatrix.csv", row.names=FALSE, col.names=FALSE, sep=",")
-	#write.table(peakMZVec, "mzVec.csv", row.names=FALSE, col.names=FALSE, sep=",")
+		# }
+		# if( baseLineFlag == 1 )
+		# {
+			# s1 <- removeBaseline(s1, method="SNIP", iterations=100)
+		# } 
+		# else
+		# {
 
+		# }
+		#still use the original intensitiy in the final output
+		#s[[i]] = s4;
+		if( peakPickingFlag == 1 )
+		{
+			writeLines( 'preprocessing and peak picking...' );
+			#p <- detectPeaks(s1, method="MAD", halfWindowSize=20, SNR=3)
+			#pData[[i]]=p
+			SNR.Th=3;
+			peakInfo <- peakDetectionCWT(intensity(s1), SNR.Th=SNR.Th, nearbyPeak=TRUE);
+			majorPeakInfo = peakInfo$majorPeakInfo
+			betterPeakInfo <- tuneInPeakInfo(intensity(s1), majorPeakInfo)
+			pData[[i]] = betterPeakInfo$peakIndex
+		}
+		else
+		{
+			
+		}
+	}
+	#pData <- binPeaks( pData, tolerance=0.5 )
+
+	dataMatrix <- matrix( 0, length(mass(s[[1]])), length(s) )
+	pMZ = mass( s[[1]] );
+	for (i in 1:length(s))
+	{
+		if( peakPickingFlag == 1 )
+		{
+			tMassIdx = pData[[i]]
+		}
+		else
+		{
+			tMassIdx = seq( 1, length(mass(s[[i]])) )
+		}
+		tMass = mass(s[[i]])[tMassIdx]
+		tIntIdx = which( mass(s[[i]]) %in% tMass )
+		dataMatrix[tMassIdx,i]=intensity(s[[i]])[tIntIdx]
+	}
 	#binning
 	# pMZLen = length( pMZ );
 	# indVec = vector( mode="integer", length = pMZLen )
@@ -296,6 +216,60 @@ MALDI_IMS_preprocessing <- function( iPath, outputPath, conPeakSelectFlag, binni
 		# temp = tapply(dataMatrix[,i], indVec, max)
 		# mDataMatrix[,i]=temp
 	# }
+	if( binningFlag == 1 )
+	{
+		writeLines( 'binning...' );
+		ins = rowSums( dataMatrix );
+		dOrd = order( ins, decreasing=TRUE );
+		tol = 0.5;
+		dPMZ = pMZ[dOrd];
+		mPMZ = vector( mode="integer", length = length(dPMZ) );
+		indVec = vector( mode="integer", length = length(dPMZ) );
+		test = vector( mode="integer", length = length(dPMZ) );
+		curPeakID = 1
+		while( length(dPMZ) != 0 )
+		{
+			print(curPeakID)
+			lMZ = dPMZ[1];
+			rMZ = dPMZ[which( dPMZ >= lMZ-tol & dPMZ <= lMZ+tol )];
+			rMZIdx = which( pMZ %in% rMZ );
+			indVec[rMZIdx] = curPeakID;
+			mPMZ[curPeakID] = lMZ;
+			test[curPeakID] = length(rMZIdx);
+			curPeakID = curPeakID + 1;
+			rDOrdSet = which( dPMZ %in% rMZ );
+			dPMZ = dPMZ[-rDOrdSet];
+		}
+		#checking, test function
+		# for( i in 1:max(indVec) )
+		# {
+			# tmp = which( indVec == i );
+			# if ( length(tmp) > 1 )
+			# {
+				# difference = diff(tmp) == 1;
+				# if( any(difference==FALSE) )
+				# {
+					# print(i)
+				# }
+			# }
+		# }
+		peakNum = max(indVec);
+		tmp = mPMZ;
+		mPMZ = vector( mode="integer", length = peakNum );
+		mPMZ = tmp[1:peakNum];
+		mPMZ = sort( mPMZ );
+		mDataMatrix = matrix( 0, length(mPMZ), length(s) )
+		tmp = unique(indVec);
+		for( i in 1:length(s) )
+		{
+			temp = tapply(dataMatrix[,i], indVec, max)
+			mDataMatrix[,i]=temp[tmp];
+		}
+	} else
+	{
+		mDataMatrix = dataMatrix;
+		mPMZ = pMZ
+	}
 	oFileName = paste( inFileName, "_data.csv", sep="" );
 	write.table(mDataMatrix, paste( outputPath, oFileName, sep="" ), row.names=FALSE, col.names=FALSE, sep=",")
 	oFileName = paste( inFileName, "_mz.csv", sep="" );
@@ -314,7 +288,4 @@ MALDI_IMS_preprocessing <- function( iPath, outputPath, conPeakSelectFlag, binni
 	}
 	oFileName = paste( inFileName, "_pos.csv", sep="" );
 	write.table(posMat, paste( outputPath, oFileName, sep="" ), row.names=FALSE, col.names=FALSE, sep=",")
-	
-	oFileName = paste( inFileName, "_indPeak.csv", sep="" );
-	write.table(indMatrix, paste( outputPath, oFileName, sep="" ), row.names=FALSE, col.names=FALSE, sep=",")
 }

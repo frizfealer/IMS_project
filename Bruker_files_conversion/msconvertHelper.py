@@ -4,6 +4,7 @@ import sys
 import subprocess
 import re
 
+MSCONVERT_PATH = 'D:\Program Files\ProteoWizard\ProteoWizard 3.0.6790\msconvert'
 inPath = str(sys.argv[1]);
 outPath = str(sys.argv[2]);
 opt = int(sys.argv[3]);
@@ -44,7 +45,7 @@ elif opt == 3:
 			os.rename( oName, nName )
 	minPath = '"'+inPath+'"'
 	outPath = '"'+outPath+'"'
-	cmd = 'C:\Program Files\ProteoWizard\ProteoWizard 3.0.6212\msconvert ' + minPath + ' -o ' + outPath + ' --mzML --filter "peakPicking true 1-"' 
+	cmd = MSCONVERT_PATH + ' ' + minPath + ' -o ' + outPath + ' --mzML' 
 	print cmd
 	#FNULL = open(os.devnull, 'w')
 	subprocess.call(cmd, shell=False)

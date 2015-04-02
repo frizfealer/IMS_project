@@ -5,7 +5,7 @@ function [ expNames, outFilePath ] = preprocess2dataCube( inputFileDir, outFileD
 %a_data.csv, a_mz.csv, a_pos.csv
 %outFileDir: the folder to output files, file name will be a_dc.mat
 fNames = dir( inputFileDir );
-expNames = cell( (length(fNames)-2)/3, 1 );
+expNames = cell( (length(fNames)-2)/4, 1 );
 cnt = 1;
 for i = 3:(length(fNames)-2)
     res = regexp(fNames(i).name,'(.+)_data.csv','tokens' );
@@ -21,6 +21,7 @@ for z = 1:length( expNames )
     dataMatrix = csvread([inputFileDir, '\', fNamePre,'_data.csv']);
     mzAxis = csvread([inputFileDir, '\', fNamePre,'_mz.csv']);
     posInfo = csvread([inputFileDir, '\', fNamePre,'_pos.csv']);
+    indMatrix = csvread([inputFileDir, '\', fNamePre,'_indPeak.csv']);
     %whos dataMatrix
     maxXVal = max( posInfo(:, 1) ) + 1;
     maxYVal = max( posInfo(:, 2) ) + 1;
@@ -32,7 +33,8 @@ for z = 1:length( expNames )
     end
     dataCube = round(dataCube);
     outFilePath{z} = [outFileDir, '\', fNamePre, '_dc.mat'];
-    save( outFilePath{z}, 'dataCube', 'mzAxis',  'posInfo', '-v7.3' );
+    IMSData.dataCube = dataCube; IMSData.mzAxis = mzAxis; IMSData.posInfo = posInfo; IMSData.indMatrix = indMatrix;
+    save( outFilePath{z}, 'IMSData', '-v7.3' );
 end
 end
 

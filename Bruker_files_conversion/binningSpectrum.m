@@ -1,13 +1,14 @@
-function [ mSpec, mMZAxis, binNumVec ] = binningSpectrum( spec, mzAxis )
-    sLen = length(spec);
+function [ mSpec, mMZAxis, binNumVec ] = binningSpectrum( spec, mzAxis, tol )
     ins = spec;
     [~,dOrd] = sort(ins, 'descend');
-    tol = 0.5;
     dMZ = mzAxis(dOrd);
     mMZAxis = zeros( length(dMZ), 1 );
     mIndVec = zeros( length(dMZ), 1 );
     curPeakID = 1;
     binNumVec = [];
+    if length(tol) == 1
+        tol = tol*ones( size(mzAxis) );
+    end
     while ~isempty(dMZ)
 %         fprintf( '%d\n', curPeakID );
 %         idx = ismember( mzAxis, dMZ ) ;
@@ -16,13 +17,14 @@ function [ mSpec, mMZAxis, binNumVec ] = binningSpectrum( spec, mzAxis )
 %             keyboard();
 %         end
         lMZ = dMZ(1);
-        rMZ = dMZ( dMZ >= lMZ - tol );
-        rMZ = rMZ( rMZ <= lMZ + tol );
+        cTOL = tol( mzAxis == lMZ );
+        rMZ = dMZ( dMZ >= lMZ - lMZ*cTOL );
+        rMZ = rMZ( rMZ <= lMZ + lMZ*cTOL );
         mIndVec( ismember( mzAxis, rMZ )==1 ) = curPeakID;
         mMZAxis(curPeakID) = lMZ;
         binNumVec(curPeakID) = length(rMZ);
         curPeakID = curPeakID + 1;
-        rDOrd = find(ismember( dMZ, rMZ ));
+        rDOrd = ismember( dMZ, rMZ );
 %         fprintf( '%d, %d, %d\n', length(dMZ), length(rMZ), length(rDOrd) );
 %         if length(rMZ) ~= length(rDOrd)
 %             keyboard();

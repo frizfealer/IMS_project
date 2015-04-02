@@ -1,0 +1,3 @@
+python msconvertHelper.py "D:\IMS_DATA\Surfactin MALDI Spectra\~Surfactin 10mg-ml 100 shots_LN" D:\\ 3
+python msconvertHelper.py "D:\IMS_DATA\Surfactin MALDI Spectra\~Surfactin 10mg-ml, 100 shots_RN" D:\\ 3
+python msconvertHelper.py "D:\IMS_DATA\Surfactin MALDI Spectra\~Surfactin 10mg-ml, 100 shots_RP" D:\\ 3
