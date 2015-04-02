@@ -224,7 +224,7 @@ for i = 1:hei*wid
         tmp(:, i) = tmp2;
     end
 end
-scaleFactor =  1 / ( max( inY(:) ) / max( tmp(:) ) ) * 1e2;
+% scaleFactor =  1 / ( max( inY(:) ) / max( tmp(:) ) );
 if strcmp( LINK_FUNC, 'identity' ) == 1
     scaleFactor = 1;
 end
@@ -270,7 +270,6 @@ for it = 1:OUTER_IT_NUM
     uW_Res = updateW_ADMM_v3_2( LINK_FUNC, inY, D, aMatrix, M_ADMM_IT_NUM, lambda, theta, USE_L1_FLAG, logFY, curVar, scaleFactor, 0, W_TOL, D_LOWER_BOUND, newWInfo );
     if uW_Res.stuckFlag == 1
         expRec.WStuckFlag = 1;
-        break;
     else
         expRec.WStuckFlag = 0;
     end
@@ -296,9 +295,6 @@ for it = 1:OUTER_IT_NUM
         cnt = cnt + 1;
         [ D, kappa ]= updateD_v8_ipopt( LINK_FUNC, 'L2_SQUARE', inY, W, W0, D, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM, W_LOWER_BOUND, kappa );
         after = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG, kappa );
-    end
-    if expRec.DStuckFlag == 1
-        break;
     end
     
     
@@ -345,6 +341,7 @@ end
 if ~isempty(filePath)
     fclose(fID);
 end
+if expRec.WStuckFlag == 0 && expRec.DStuckFlag == 0
 expRec.D = D; expRec.W = W; expRec.W0 = W0;
 expRec.LPAry = LPAry; expRec.z0 = z0; expRec.z1 = z1; expRec.z2 = z2;
 expRec.theta = theta; expRec.lambda = lambda; expRec.phi = phi; 
@@ -352,6 +349,7 @@ expRec.diffW = tmp1; expRec.diffW0 = tmp2; expRec.diffD = tmp3;
 expRec.param = param; expRec.aMatrix = aMatrix;
 if strcmp( LINK_FUNC, 'negative_binomial' ) == 1
     expRec.kappa = kappa;
+end
 end
 %expRec.rhoCell = rhoCell; expRec.resRecCell = resRecCell;
 
