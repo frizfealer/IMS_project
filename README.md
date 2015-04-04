@@ -22,3 +22,6 @@ There are several folders in this project that are relevant to the work in ISMB2
 * example
 * testFunctions
 * utility
+
+# Input data format:
+  1. The input data should be *.mzML. This is an open XML-based format so our program can process it. To covert from a proprietary file format to the mzML, One can use [msconvert](http://proteowizard.sourceforge.net/tools.shtml). The details of how to do this is in the website.
