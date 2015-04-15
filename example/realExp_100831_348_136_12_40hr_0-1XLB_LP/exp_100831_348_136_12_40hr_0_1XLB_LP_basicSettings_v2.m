@@ -1,7 +1,8 @@
-function [ expRec, gridVec ] = exp_100831_348_136_12_40hr_0_1XLB_LP_basicSettings_v2()
+function [ expRec, gridVec ] = exp_100831_348_136_12_40hr_0_1XLB_LP_basicSettings_v2( inputFilePath, outputFilePath)
 %experiment scripts update @ 2015/03/05
 %% load data, including dataCube and mzAxis
-load( 'D:\IMS_DATA\100831_348_136_12,40hr_0-1XLB_LP\pp\100831_348_136_12,40hr_0-1XLB_LP.mzML_dc.mat' );
+% inputFilePath = 'D:\IMS_DATA\100831_348_136_12,40hr_0-1XLB_LP\pp\100831_348_136_12,40hr_0-1XLB_LP.mzML_dc.mat'; 
+load( inputFilePath );
 %% generate BlkDS, a data structure for bacteria community location information
 %BlkDS has the 4 fields
 %blkNum: the bacteria community number 
@@ -13,57 +14,33 @@ IMSD = IMSData; clear IMSData;
 IMSD.BlkDS = conBLKDS( IMSD.dataCube );
 
 %% bin dataCube
-[ mDataCube, mMZAxis, mappingFunc, ~, ~, ~ ] = binningDataCube( IMSD.dataCube, IMSD.mzAxis, IMSD.BlkDS, []);
-fileID = fopen( 'D:\Users\YeuChern\GitHub\IMS_project\example\molecule_profile_pos_v2.csv' );
-C = textscan(fileID, '%f %s', 'delimiter', {','}); fclose(fileID); mpAry = C{1,1};
-[ resMat, delta, resMat2, resMat3 ] = checkingBinFunction2( mappingFunc, IMSD.mzAxis, mpAry, mDataCube(:, IMSD.BlkDS.indMap==1),...
-    IMSD.indMatrix, IMSD.dataCube(:, IMSD.BlkDS.indMap==1), [] );
-ins = resMat3; ins(resMat>0.5) = 0; %figure; imagesc2(ins);
-ins = max(ins, [], 2);
-mBinIdx = ins >= 2;
-[ IMSD.dataCube, mMZAxis, IMSD.mappingFunc, ~, ~, ~ ] = binningDataCube( IMSD.dataCube, IMSD.mzAxis, IMSD.BlkDS, mMZAxis(mBinIdx) );
+[ IMSD.dataCube, mMZAxis, IMSD.mappingFunc, ~, ~, ~ ] = binningDataCube( IMSD.dataCube, IMSD.mzAxis, IMSD.BlkDS, []);
 IMSD.oMZAxis = IMSD.mzAxis; IMSD.mzAxis = mMZAxis; clear mMZAxis;
-%checking
-% [ resMat, delta, resMat2, resMat3 ] = checkingBinFunction2( mappingFunc, IMSD.mzAxis, mpAry, mDataCube(:, IMSD.BlkDS.indMap==1),...
-%     IMSD.indMatrix, IMSD.dataCube(:, IMSD.BlkDS.indMap==1), [] );
 
 %% retrieve data dimension
 [SLEN, IHEIGHT, IWIDTH] = size( IMSD.dataCube );
 
-%% trim data, only consider m/z channel has values larger then the value of  intThreshold accross all the grids
-% intThreshold = 100;
-% ins = IMSD.dataCube(:,:);
-% ins = ins(:, IMSD.BlkDS.indMap);
-% tmp = zeros( size( ins, 1 ), 1 );
-% for i = 1:length(tmp)
-%     tmp(i) = max( ins(i, :) );
-% end
-% hist(tmp, 100);
-% tIdx = find(tmp>=intThreshold);
-% rMZ = IMSD.mzAxis(tIdx);
-% IMSD.dataCube = IMSD.dataCube(tIdx, :, :);
-% IMSD.mzAxis = IMSD.mzAxis(tIdx);
-% for i = 1:length(rMZ)
-%     IMSD.mappingFunc(IMSD.mappingFunc == rMZ(i) ) = [];
-%     IMSD.oMZAxis(IMSD.oMZAxis == rMZ(i) ) = [];
-%     IMSD.indMatrix(IMSD.mappingFunc == rMZ(i), :) = [];
-% end
-
-%% generate aMatrix, alpha matrix for leave-out testing.
-%if aMatrix is set to ones e.g. aMatrix = ones( IHEIGHT, IWIDTH );,
-%then there is no leave-out
-%aMatrix: a logical matrix, as the same size of the grid, with 1 means the
-%grids used in training process, and 0 means in testing process
-% aMatrix = ones( IHEIGHT, IWIDTH );
-[ aMatrix ] = leaveoutCBPatternsData( BlkDS, 10 );
 %% generate DTemplate
 IonTableFilePathPos = 'D:\Users\YeuChern\GitHub\IMS_project\example\molecule_profile_pos_v2.csv';
-%smallest molecule weight, set to H = 1.007
-%m/z error +/- 0.5
-[ pDTemplate2, pDIonName2, pSpeciesM2 ] = genDTemplate_v4( IMSD.dataCube, IMSD.mzAxis, ...
-    IonTableFilePathPos, 1.007, 0.5, IMSD.mappingFunc, IMSD.oMZAxis, IMSD.indMatrix);
+[ DTemplate2, DIonName2, speciesM2 ] = genDTemplate_v3( IMSD.mzAxis, IonTableFilePathPos, 5e-4 );
+[ DTemplate2, DIonName2, SpeciesM2 ] = improveDTemplate( 'positive', DTemplate2, DIonName2, speciesM2 );
+[ aMatrix ] = leaveoutCBPatternsData_v2( IMSD.BlkDS, 10 );
+save( outputFilePath );
+% 
+% load( 'null_model_20150308_lf_iden.mat');
+% [ maxLambda, minLambda ] = estimateLambdaMaxMin( IMSD.dataCube, expRec.D, expRec.W, expRec.W0, 'identity' );
+% [ maxTheta, minTheta ] = estimateL2ThetaMaxMin( IMSD.dataCube, expRec.D, expRec.W, expRec.W0, 'identity' );
+% [ maxPhi, minPhi ] = estimatePhiMaxMin( IMSD.dataCube, expRec.D, expRec.W, expRec.W0, 'identity' );
+% lambdaVec = logspace( log10(minLambda), log10(maxLambda), 5 ); lambdaVec = [1e-32 lambdaVec];
+% thetaVec = logspace( log10(minTheta), log10(maxTheta), 5 ); thetaVec = [1e-32 thetaVec];
+% phiVec = logspace( log10(minPhi), log10(maxPhi), 5 ); phiVec = [1e-32 phiVec];
+% 
+% save( '100831_348_136_12_40hr_0_1XLB_LP_input_20150306.mat' );
+% 
+% [ aMatrix ] = leaveoutCBPatternsData_v2( IMSD.BlkDS, 10 );
+% 
+% save( '100831_348_136_12_40hr_0_1XLB_LP_input_20150306.mat' );
 
-save( '100831_348_136_12_40hr_0_1XLB_LP_input_20150306.mat' );
 
 % %% running dictionary learning
 % lambda = 1e-6; phi = 1e-6; theta = 1e-6;
