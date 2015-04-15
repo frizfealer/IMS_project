@@ -204,7 +204,6 @@ else
     W0 = initVar.W0;
     z0 = initVar.z0; z1 = initVar.z1; z2 = initVar.z2;
 end
-% kappa = 1e-4;
 %% managing matlab pool
 % if matlabpool('size') == 0 && CLUSTER_NUM > 1
 %     matlabpool( 'open', CLUSTER_NAME, CLUSTER_NUM );
@@ -282,7 +281,7 @@ for it = 1:OUTER_IT_NUM
     %% update D
     validMap = BlkDS.indMap .* aMatrix;
     before = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
-    [ D, kappa ]= updateD_v8_ipopt( LINK_FUNC, 'L2_SQUARE', inY, W, W0, D, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM, W_LOWER_BOUND );
+    [ D ]= updateD_v8_ipopt( LINK_FUNC, 'L2_SQUARE', inY, W, W0, D, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM, W_LOWER_BOUND );
     after = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
     
     cnt = 0;
@@ -293,12 +292,13 @@ for it = 1:OUTER_IT_NUM
             break;
         end
         cnt = cnt + 1;
-        [ D, kappa ]= updateD_v8_ipopt( LINK_FUNC, 'L2_SQUARE', inY, W, W0, D, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM, W_LOWER_BOUND, kappa );
-        after = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG, kappa );
+        [ D ]= updateD_v8_ipopt( LINK_FUNC, 'L2_SQUARE', inY, W, W0, D, DTemplate, validMap, HES_FLAG, phi, scaleFactor, M_UP_D_IT_NUM, W_LOWER_BOUND );
+        after = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
     end
+    %ensure sparsity in D
+    D( D < D_LOWER_BOUND ) = 0;
     
-    
-    LPAry(it+1) = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG, kappa );
+    LPAry(it+1) = LP_DL_Poiss( LINK_FUNC, aMatrix, inY, W, W0, D, lambda, phi, theta, scaleFactor, logFY, MEAN_FLAG );
     tmp1 = max( abs( W(:)-prevW(:) ) );
     tmp2 = max( abs( W0(:)-prevW0(:) ) );
     tmp3 = max( abs( D(:)-prevD(:) ) );
@@ -320,10 +320,10 @@ for it = 1:OUTER_IT_NUM
         save( W_HIST_PATH, 'WHistCell', '-v7.3' );
     end
     % compute df for W
-    ins = zeros( size(W, 1), 1 );
-    for i = 1:length(ins)
-        ins(i) = max( W(i,:) );
-    end
+%     ins = zeros( size(W, 1), 1 );
+%     for i = 1:length(ins)
+%         ins(i) = max( W(i,:) );
+%     end
 %     dfWVec(it) = length( find( ins > W_LOWER_BOUND ) );
 %     dfWHoldFlag = 0;
 %     if mod( it, 10 ) == 0
@@ -337,20 +337,22 @@ for it = 1:OUTER_IT_NUM
         %( tmp3 < D_TOL && dfWHoldFlag == 1 ) 
         break;
     end
+    % the optimization in W or D cannot make the cost function go down.
+    if expRec.WStuckFlag == 1 || expRec.DStuckFlag == 1
+         break;
+    end
 end
 if ~isempty(filePath)
     fclose(fID);
 end
-if expRec.WStuckFlag == 0 && expRec.DStuckFlag == 0
-expRec.D = D; expRec.W = W; expRec.W0 = W0;
-expRec.LPAry = LPAry; expRec.z0 = z0; expRec.z1 = z1; expRec.z2 = z2;
-expRec.theta = theta; expRec.lambda = lambda; expRec.phi = phi; 
-expRec.diffW = tmp1; expRec.diffW0 = tmp2; expRec.diffD = tmp3;
-expRec.param = param; expRec.aMatrix = aMatrix;
-if strcmp( LINK_FUNC, 'negative_binomial' ) == 1
-    expRec.kappa = kappa;
-end
-end
+expRec.theta = theta; expRec.lambda = lambda; expRec.phi = phi;
+expRec.LPAry = LPAry; expRec.param = param; expRec.aMatrix = aMatrix;
+expRec.W = W; expRec.W0 = W0;
+expRec.z0 = z0; expRec.z1 = z1; expRec.z2 = z2;
+expRec.diffW = tmp1; expRec.diffW0 = tmp2;
+expRec.D = D;
+expRec.diffD = tmp3;
+
 %expRec.rhoCell = rhoCell; expRec.resRecCell = resRecCell;
 
 end
