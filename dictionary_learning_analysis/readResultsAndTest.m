@@ -51,9 +51,9 @@ elseif parForFlag == 0
         tVec(i) = expRec.theta;
         pVec(i) = expRec.phi;
         if strcmp( linkFunc, 'negative_binomial' ) == 1
-            [ valVec(i) ] = validationOnTesting( aMatrix, IMSD.dataCube, expRec.D, expRec.W, expRec.W0, lVec(i), linkFunc, expRec.kappa );
+            [ valVec(i) ] = validationOnTesting( aMatrix, dataCube, expRec.D, expRec.W, expRec.W0, lVec(i), linkFunc, expRec.kappa );
         else
-            [ valVec(i) ] = validationOnTesting( aMatrix, IMSD.dataCube, expRec.D, expRec.W, expRec.W0, lVec(i), linkFunc );
+            [ valVec(i) ] = validationOnTesting( aMatrix, dataCube, expRec.D, expRec.W, expRec.W0, lVec(i), linkFunc );
         end
     end
 end
