@@ -60,8 +60,10 @@ resMOLDLPath = [ projectPath, '/', 'example/realExp_100831_348_136_12_40hr_0-1XL
 load( resMOLDLPath );
 tIdx = find(valVec==max(valVec));
 listing = dir( resFolderPath );
-disp(listing(tIdx+2).name);
-load( [resFolderPath '/' listing(tIdx+2).name] );
+disp(listing(tIdx+2).name); %exp_100831_348_136_12_40hr_0_1XLB_LP_res_v3_2_.mat
+%load( [resFolderPath '/' listing(tIdx+2).name] );
+%load the result directly
+load( 'exp_100831_348_136_12_40hr_0_1XLB_LP_res_v3_2_.mat' );
 W = expRec.W; D = expRec.D;
 thresD = 1e-2; thresW = 1e-2;
 [~, ~, molD, insW] = postProcessResults( D, W, thresD, thresW );
