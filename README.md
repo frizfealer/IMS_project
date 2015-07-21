@@ -31,6 +31,7 @@ There are several folders in this project that are relevant to the work in ISMB2
   If you need the mzML file in the example, you can download them from: https://drive.google.com/open?id=0B06g-wOYKgZ8ald2VGtKUnJIYVE and https://drive.google.com/open?id=0B06g-wOYKgZ8amtnRmNLRnE1MDA.
   2. Then we use Bruker_files_conversion\usePreprocessing.R to read mzML file and do peak picking. Again, the details of how to do this is in Bruker_files_conversion\commands.txt.
   3. The steps afterwards are shown in exp_100831_348_136_12_40hr_0_1XLB_LN_basicSettings_v2.m and exp_100831_348_136_12_40hr_0_1XLB_LP_basicSettings_v2.m
+
 ## Main program:
   The example of using it can be seem in the file **expScript_20150401.m** under the folder "example\realExp_100831_348_136_12_40hr_0-1XLB_LN" 
   or "example\realExp_100831_348_136_12_40hr_0-1XLB_LP".
