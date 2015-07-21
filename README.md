@@ -5,6 +5,7 @@ There are several depend libraries in R and Matlab that are needed. Please insta
   1. MALDIquant
   2. MALDIquantForeign
   3. MassSpecWavelet
+  4. mzR
 * MATLAB:
   - For **MOLDL**
     1. [glmnet](http://web.stanford.edu/~hastie/glmnet_matlab/) 
@@ -24,17 +25,15 @@ There are several folders in this project that are relevant to the work in ISMB2
 * testFunctions
 * utility
 
-# Input data format:
-  The input data should be of the mzML format. This is an open XML-based format so our program can process it. 
-  To covert from the Bruker proprietary file format to the mzML, One can use [msconvert](http://proteowizard.sourceforge.net/tools.shtml). The details of how to do this is in the website.
-# Preprocessing:
-  1. File reading and peak picking:
-  after the data is converted into mzML format, using the R function MALDI_IMS_preprocessing to do the file reading and peak picking. 
-  There will be four csv files in this folder.
-  2. Files aggreation and binning: 
-  The files in the output folder are aggregated into a file using the MATLAB function preprocess2dataCube for further MATLAB processing.
-  The processed file becomes a mat file. Later on this file is loaded to bin with the MATLAB function binningDataCube.
-  The example of using it can be seem in the file expScript_20150401.m under the folder "example\realExp_100831_348_136_12_40hr_0-1XLB_LN" 
+## Preprocessing:
+  1. The input data, whaterever intruments of IMS is using, should be converted into the mzML format. This is an open XML-based format so our program can process it. 
+  To covert from the Bruker proprietary file format to the mzML, One can use [msconvert](http://proteowizard.sourceforge.net/tools.shtml). The details of how to do this is in Bruker_files_conversion\commands.txt.
+  If you need the mzML file in the example, you can download them from: https://drive.google.com/open?id=0B06g-wOYKgZ8ald2VGtKUnJIYVE and https://drive.google.com/open?id=0B06g-wOYKgZ8amtnRmNLRnE1MDA.
+  2. Then we use Bruker_files_conversion\usePreprocessing.R to read mzML file and do peak picking. Again, the details of how to do this is in Bruker_files_conversion\commands.txt.
+  3. The steps afterwards are shown in exp_100831_348_136_12_40hr_0_1XLB_LN_basicSettings_v2.m and exp_100831_348_136_12_40hr_0_1XLB_LP_basicSettings_v2.m
+## Main program:
+  The example of using it can be seem in the file **expScript_20150401.m** under the folder "example\realExp_100831_348_136_12_40hr_0-1XLB_LN" 
   or "example\realExp_100831_348_136_12_40hr_0-1XLB_LP".
+## 
   
   

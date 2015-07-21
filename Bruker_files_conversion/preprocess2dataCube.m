@@ -1,9 +1,19 @@
 function [ expNames, outFilePath ] = preprocess2dataCube( inputFileDir, outFileDir)
-%preprocess2dataCube
-%inputFileDir: The folder containing the preprocessed files
-%e.g. each experiment containing three files (if experiment a)
-%a_data.csv, a_mz.csv, a_pos.csv
-%outFileDir: the folder to output files, file name will be a_dc.mat
+%--------------------------------------------------------------------------
+% preprocess2dataCube: convert preprocessing files into a data Cube 
+%--------------------------------------------------------------------------
+% DESCRIPTION:
+%   convert four csv files (*_data.csv, *_mz.csv, *_indPeak.csv, and *_pos.csv) into a datacube file (*_dc.mat file)
+%
+% INPUT ARGUMENTS:
+%   inputFileDir, input file directory, should not include the last "\" in
+%   the end. Multiple project csv files can in the same folder, that is,
+%   there can be more than four files in a folder.
+%   outFileDir, deprecated now.
+% OUTPUT ARGUMENTS:
+%   expNames, experiment name recognized from the files.
+%   outFilePath, the output file path.
+
 fNames = dir( inputFileDir );
 expNames = cell( (length(fNames)-2)/4, 1 );
 cnt = 1;

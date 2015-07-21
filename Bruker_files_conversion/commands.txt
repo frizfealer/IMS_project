@@ -1,3 +1,23 @@
-python msconvertHelper.py "D:\IMS_DATA\Surfactin MALDI Spectra\~Surfactin 10mg-ml 100 shots_LN" D:\\ 3
-python msconvertHelper.py "D:\IMS_DATA\Surfactin MALDI Spectra\~Surfactin 10mg-ml, 100 shots_RN" D:\\ 3
-python msconvertHelper.py "D:\IMS_DATA\Surfactin MALDI Spectra\~Surfactin 10mg-ml, 100 shots_RP" D:\\ 3
+//convert MALDI-IMS in the folder from Bruker machine into a mzML file
+//format: python [msconvertHelper.py file location] [MALDI-IMS folder location] [output folder location] 3
+//we provide these file in the following links:
+//https://drive.google.com/open?id=0B06g-wOYKgZ8ald2VGtKUnJIYVE
+//https://drive.google.com/open?id=0B06g-wOYKgZ8amtnRmNLRnE1MDA
+python msconvertHelper.py "D:\IMS_DATA\100831_348_136_12,40hr_0-1XLB_LP\100831_348_136_12,40hr_0-1XLB_LP" D: 3
+python msconvertHelper.py "D:\IMS_DATA\100831_348_136_12,40hr_0-1XLB_LN\100831_348_136_12,40hr_0-1XLB_LN" D: 3
+
+//convert mzML file into four csv files
+//format: Rscript [usePreprocessing.R file location (need to be the same location with preprocessing.R)] [mzML file location] [output folder location]
+"D:\Program Files\R\R-3.1.0\bin\x64\Rscript" usePreprocessing.R "D:\\IMS_DATA\\100831_348_136_12,40hr_0-1XLB_LN\\100831_348_136_12,40hr_0-1XLB_LN.mzML" "D:\\IMS_DATA\\100831_348_136_12,40hr_0-1XLB_LN\\outCSV\\"
+"D:\Program Files\R\R-3.1.0\bin\x64\Rscript" usePreprocessing.R "D:\\IMS_DATA\\100831_348_136_12,40hr_0-1XLB_LP\\100831_348_136_12,40hr_0-1XLB_LP.mzML" "D:\\IMS_DATA\\100831_348_136_12,40hr_0-1XLB_LP\\outCSV\\"
+//these csv files can be downloaded in the following links:
+//https://drive.google.com/open?id=0B06g-wOYKgZ8fmRkcFJXcXpXZEZtM0hlX3dSWWVQdzZreFY2Ykg0RnVRZ1VxMkFXTHZTWUE
+//https://drive.google.com/open?id=0B06g-wOYKgZ8fnM3MGtveVhPQmlZN2hLUEFKLVJUejZNMmY5RlVtdHdyMXByQ1FyUkNwc2M
+
+//Further steps are shown in the MATLAB script: exp_100831_348_136_12_40hr_0_1XLB_LN_basicSettings_v2() and exp_100831_348_136_12_40hr_0_1XLB_LP_basicSettings_v2()
+
+//For MALDI-spectrum file for surfactin
+python msconvertHelper.py "D:\IMS_DATA\Surfactin MALDI Spectra\~Surfactin 10mg-ml 100 shots_LN" D: 3
+python msconvertHelper.py "D:\IMS_DATA\Surfactin MALDI Spectra\~Surfactin 10mg-ml, 100 shots_RN" D: 3
+python msconvertHelper.py "D:\IMS_DATA\Surfactin MALDI Spectra\~Surfactin 10mg-ml, 100 shots_RP" D: 3
+//convert mzML file into a 
