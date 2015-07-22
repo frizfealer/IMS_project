@@ -1,122 +1,46 @@
-function [ DTemplate, DIonName, speciesM ] = genDTemplate_v4( dataCube, inpeakMZ, MPPATH, smallestM, errRange, mappingFunc,mzAxis, indMat, varargin )
-%genDTemplate generate DTemplate within epsilon error
-%inpeakMZ [sLen 1],
-%MPPATH: the pattern file path,
-%'D:\RA\Project_dictionaryLearning_IMS\molecule_profile_new_trim.csv'
-%smallestM: the smallest molecule's weight
-%errRange: the error tolerance to bin m/z to inpeakMZ
-%inMolMZ: the additional parameter that users can specified the m/z to
-%generate peaks, instead of using the whole inpeakMZ
-%return DTemplate, a template with 1 means possible and 0 means impossible
-%DIonName, "possible" adducts generated that signals. This information is
-%just one of the possible answers.
-fileID = fopen(MPPATH);
-C = textscan(fileID, '%f %s', 'delimiter', {','});
-fclose(fileID);
-mpAry = C{1,1};
-nameAry = C{1,2};
-SLEN = length(inpeakMZ);
-if length(varargin) == 1
-    inMolMZ = varargin{1};
-else
-    inMolMZ = inpeakMZ;
-end
+function [ DTemplate, DIonName, speciesM ] = genDTemplate_v4( MPPATH, IMSD, errRange )
+%--------------------------------------------------------------------------
+% genDTemplate_v4: generate DTemplate version 4
+%--------------------------------------------------------------------------
+% DESCRIPTION:
+%   A new way to generate dictionary templates. It allows only the local
+%   maximun m/z has all possible ion types. Other m/z values can only have
+%   M+H ion types. This function could be changed soon.
+%
+% INPUT ARGUMENTS:
+%   MPPATH: the file path of ion types
+%   errRange, the error tolerance of m/z shifting, should be consistenet
+%   with binning error. Default setting is 5e-4 (500 ppm).
+%   IMSD: the input data cube types.
+% OUTPUT ARGUMENTS:
+%   DTemplate, a template with 1 means possible and 0 means impossible
+%   entries of a dictionary.
+%   DIonName, all possible adducts generated that signal. Every dictionary
+%   elements has a cell of possilbe DIonNames and each entry in this cell
+%   correspondes to one possible set of adducts.
+%   speciesM, all possible molecular weight generate that signal. Every
+%   dictionary elements has a vector of possible molecular weights.
 
-interval = mpAry - mpAry(1);
-mapping = zeros( length(interval), length(interval) );
-for i = 2:length(interval)
-    mapping(i,:) = interval - interval(i);
-end
-mapping(1,:) = interval;
+ins = max( IMSD.dataCube(:, :), [], 2 );
+[~,locs] = findpeaks(ins);
+[ DTemplate3, DIonName3, speciesM3 ] = genDTemplate_v3( IMSD.mzAxis, MPPATH, errRange, [], [], IMSD.mzAxis(locs)  );
+[ DTemplate3, DIonName3, SpeciesM3 ] = improveDTemplate( 'positive', DTemplate3, DIonName3, speciesM3 );
+ins = sum( DTemplate3, 2);
+idx =  ins == 0 ;
+[ DTemplate4, DIonName4, speciesM4 ] = genDTemplate_v3( IMSD.mzAxis, MPPATH, errRange, [1], [], IMSD.mzAxis(idx)  );
+[ DTemplate4, DIonName4, SpeciesM4 ] = improveDTemplate( 'positive', DTemplate4, DIonName4, speciesM4 );
+DTemplate = [DTemplate3 DTemplate4];
+DIonName = [DIonName3, DIonName4];
+speciesM = [SpeciesM3, SpeciesM4]; 
 
-ins = zeros( size(dataCube, 1), 1 );
-for i = 1:size(ins)
-    ins(i) = sum( dataCube(i, :) );
+mvVec = zeros( length(speciesM), 1 );
+for i = 1:length(speciesM)
+    mvVec(i) = mean(speciesM{i});
 end
-[~, ord] = sort(ins, 'descend');
-oInMolMZ = inMolMZ(ord);
-speciesM = [];
-DTemplate = [];
-DIonName = {};
-cnt = 1;
-fprintf( 'generating DTemplate...\n' );
-while ~isempty(oInMolMZ)
-    cMZ = oInMolMZ(1);
-    for j = 1:size(mapping, 1)
-            mapD = computeMap( mappingFunc, mzAxis, mapping(j,:), cMZ, indMat, 5e-4 );
-            curPeak = mapD( ~isnan( mapD ) );
-            if isempty( DTemplate )
-                DTemplate = zeros( SLEN, 1 );
-                DTemplate(curPeak, 1) = 1;
-                DIonName{cnt} = nameAry( ~isnan( mapD) );
-                speciesM = [speciesM cMZ-mpAry(j)];
-                
-                idx =  ismember(oInMolMZ, inMolMZ(curPeak)) ;
-                oInMolMZ(idx) = [];
-            else
-                curTem = zeros( SLEN, 1 );
-                curTem( curPeak, 1 ) = 1;
-                inFlag = 0;
-                for k = size( DTemplate, 2 ):-1:1
-                    tmp = DTemplate(:, k) - curTem;
-                    ins = sum(abs(tmp));
-                    if ins ==0
-                        inFlag = 1;
-                        break;
-                    end
-                end
-                if inFlag == 0
-                    cnt = cnt + 1;
-                    DTemplate = [DTemplate curTem];
-                    DIonName{cnt} = nameAry( ~isnan( mapD ) );
-                    speciesM = [speciesM cMZ-mpAry(j)];
-                    idx =  ismember(oInMolMZ, inMolMZ(curPeak)) ;
-                    oInMolMZ(idx) = [];
-                end
-            end
-    end
-end
-
-end
-
-function mapD = computeMap( mappingFunc, mzAxis, pmShift, cMZ, indMat, tol )
-mappingIdx = find( mappingFunc == cMZ );
-voteVec = sum( indMat(mappingIdx, :), 2 );
-peakMZ = unique(mappingFunc);
-if length(mappingIdx) ==1
-    cShift = mappingFunc(mappingIdx)+pmShift;
-    cMZ = arrayfun(@(x) binFunc( mappingFunc, mzAxis, x, tol ), cShift );
-    mapD = zeros( length(cMZ), 1 );
-    for i = 1:length(cMZ)
-        if cMZ(i) == -1
-            mapD(i) = -1;
-        else
-            mapD(i) = find( peakMZ == cMZ(i) );
-        end
-    end
-    mapD(mapD==-1) = nan;
-else
-    mapD = zeros( length(pmShift), 1 );
-    for i = 1:length(pmShift)
-        cShift = pmShift(i) + mzAxis(mappingIdx);
-        cb = arrayfun(@(x) binFunc(mappingFunc, mzAxis, x, tol ), cShift );
-        uniMZ = unique(cb);
-        cntVec = zeros( length(uniMZ), 1);
-        for z = 1:length(cb)
-            if cb(z) == -1
-                cntVec(1) = cntVec(1) + 1;
-            else
-                cntVec( uniMZ == cb(z) ) = cntVec( uniMZ == cb(z) ) + voteVec(z);
-            end
-        end
-        [~, sIdx] = sort( cntVec, 'descend' );
-        if uniMZ(sIdx(1)) == -1
-            mapD(i) = nan;
-        else
-            mapD(i) = find( peakMZ == uniMZ(sIdx(1)) );
-        end
-    end
-end
+[~, idx] = sort( mvVec );
+speciesM = speciesM(idx);
+DIonName = DIonName(idx);
+DTemplate = DTemplate(:, idx);
 
 
 end

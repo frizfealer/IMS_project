@@ -41,15 +41,20 @@ nameAry = C{1,2};
 nameAry = nameAry(idx);
 
 SLEN = length(inpeakMZ);
-if length(varargin) >= 1
+if length(varargin) >= 1 && ~isempty(varargin{1})
     usedIonForms = varargin{1};
 else
     usedIonForms = 1:length(mpAry);
 end
-if length(varargin) == 2
+if length(varargin) >= 2 && ~isempty(varargin{2})
     removeRedFlag = varargin{2};
 else
     removeRedFlag = 0;
+end
+if length(varargin) == 3 && ~isempty(varargin{3})
+    targetPeakMZ = varargin{3};
+else
+    targetPeakMZ = inpeakMZ;
 end
 if isempty( errRange )
     errRange = 5e-4;
@@ -68,9 +73,9 @@ DTemplate = [];
 DIonName = {};
 cnt = 1;
 fprintf( 'generating DTemplate...\n' );
-for i = 1:length(inpeakMZ)
+for i = 1:length(targetPeakMZ)
     %     fprintf( 'm/z %g\n', mMVec(i));
-    curMZ = inpeakMZ(i);
+    curMZ = targetPeakMZ(i);
     for j = 1:length(usedIonForms)
         cMapping = mapping(j, :);
         possibleRelatedPeaks = cMapping+curMZ;
