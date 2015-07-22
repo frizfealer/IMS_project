@@ -35,9 +35,6 @@ end
 uDTemplate = DTemplate;
 uDIonName = DIonName;
 for i = 1:size(DTemplate, 2)
-    if i == 372
-        keyboard;
-    end
     idx = find( DTemplate(:, i) == 1 );
     cName = DIonName{i};
     mapTab = cell( 1, 2 );
