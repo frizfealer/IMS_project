@@ -34,12 +34,45 @@ IonTableFilePathPos = 'D:\Users\YeuChern\GitHub\IMS_project\example\molecule_pro
 %[ DTemplate2, DIonName2, SpeciesM2 ] = improveDTemplate( 'positive', DTemplate2, DIonName2, speciesM2 );
 [ DTemplate, DIonName, speciesM ] = genDTemplate_v4( IonTableFilePathPos, IMSD, 5e-4 );
 [ DTemplate, DIonName ] = addingIsotopeDTemplate( IMSD.mzAxis, 5e-4, DTemplate, DIonName, 2, [] );
-
-%% generate leave-out pattern among grid cells 
 [ aMatrix ] = leaveoutCBPatternsData_v2( IMSD.BlkDS, 10 );
-
-%% saves
 save( OUTPUT_FILE_PATH, 'aMatrix', 'DTemplate', 'DIonName', 'speciesM', 'SLEN', 'IHEIGHT', 'IWIDTH', 'IMSD' );
+% 
+% load( 'null_model_20150308_lf_iden.mat');
+% [ maxLambda, minLambda ] = estimateLambdaMaxMin( IMSD.dataCube, expRec.D, expRec.W, expRec.W0, 'identity' );
+% [ maxTheta, minTheta ] = estimateL2ThetaMaxMin( IMSD.dataCube, expRec.D, expRec.W, expRec.W0, 'identity' );
+% [ maxPhi, minPhi ] = estimatePhiMaxMin( IMSD.dataCube, expRec.D, expRec.W, expRec.W0, 'identity' );
+% lambdaVec = logspace( log10(minLambda), log10(maxLambda), 5 ); lambdaVec = [1e-32 lambdaVec];
+% thetaVec = logspace( log10(minTheta), log10(maxTheta), 5 ); thetaVec = [1e-32 thetaVec];
+% phiVec = logspace( log10(minPhi), log10(maxPhi), 5 ); phiVec = [1e-32 phiVec];
+% 
+% save( '100831_348_136_12_40hr_0_1XLB_LP_input_20150306.mat' );
+% 
+% [ aMatrix ] = leaveoutCBPatternsData_v2( IMSD.BlkDS, 10 );
+% 
+% save( '100831_348_136_12_40hr_0_1XLB_LP_input_20150306.mat' );
+
+
+% %% running dictionary learning
+% lambda = 1e-6; phi = 1e-6; theta = 1e-6;
+% snapPath = 'temp_1.mat';
+% %setting up parameters
+% [ param ] = setDLParameters();
+% param.D_ION_NAME = nDIonName;
+% % param.D_HIST_PATH = 'DHist_l_0_t_0_p_0.mat';
+% % param.W_HIST_PATH = 'WHist_l_0_t_0_p_0.mat';
+% save( '100831_348_136_12_40hr_0_1XLB_LN_input.mat' );
+% 
+% %% run an estimate of hyper parameters
+% [ expRec ] = dictionaryLearning_ADMM_v5( dataCube, [], nDTemplate, [], lambda, theta, phi, aMatrix, BlkDS, [], snapPath, param );
+% save( 'exp_100831_348_136_12_40hr_0_1XLB_LN_1_res.mat', 'expRec' );
+% [ elambda, ~, ephi ] = estimateHypParam( expRec.outW, expRec.outD, nDTemplate, BlkDS );
+% clear expRec
+% [ expRec1_2 ] = dictionaryLearning_ADMM_v5( dataCube, [], nDTemplate, [], elambda, theta, ephi, aMatrix, BlkDS, [], snapPath, param );
+% save( 'exp_100831_348_136_12_40hr_0_1XLB_LN_1_2_res.mat', 'expRec1_2' );
+% [ ~, etheta, ~ ] = estimateHypParam( expRec1_2.outW, expRec1_2.outD, nDTemplate, BlkDS );
+% clear expRec1_2
+% save( '100831_348_136_12_40hr_0_1XLB_LN_input.mat' );
+% %%
 
 end
 
