@@ -59,6 +59,7 @@ options.standardize=0;
 %options.thresh = 1e-16;
 options.thresh = 1e-8;
 options.lambda_min = 0;
+options.ltype='modified.Newton'; %is faster then 'Newton'
 fit = glmnet( CforUW,d, 'gaussian', options );
 w_w0 = fit.beta(:, end);
 

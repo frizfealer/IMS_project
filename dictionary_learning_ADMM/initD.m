@@ -1,4 +1,4 @@
-function [ outD ] = initD( dataCube, DTemplate, method, DIonName, L1Flag )
+function [ outD ] = initD( dataCube, DTemplate, method, DIonName, cons )
 %--------------------------------------------------------------------------
 % initD: initialize dictionary according to DTemplate
 %--------------------------------------------------------------------------
@@ -12,7 +12,8 @@ function [ outD ] = initD( dataCube, DTemplate, method, DIonName, L1Flag )
 %   method, 'random', 'online-DL' (under construction), 'NNMF'
 %   DIonName, can be [], if provided, CH2-ion-type is set to zero,
 %   deprecated.
-%   L1Flag, should be always set to 0 (Under construction).
+%   cons, constraints, either 'L1' or 'L2_SQUARE'. 'L1' IS UNDER
+%   CONSTRUCTION.
 % OUTPUT ARGUMENTS:
 %   outD, the resulting dictionary.
 
@@ -71,30 +72,17 @@ elseif strcmp( method, 'NNMF' ) == 1
         ins = dataCube(cSpec, :);
         res = sum(ins, 1);
         [~,idx]= sort( res, 'descend' );
+        %%consider only non-zero entries
         lowerIdx = find(res(idx)<=0,1) - 1;
         if isempty( lowerIdx )
             lowerIdx = length(idx);
         end
         if lowerIdx ~= 0
             [w, ~] = nnmf( ins(:,idx(1:lowerIdx)), 1 );
-            %                 if isempty( DIonName )
-            %                     outD(cSpec, i) = w;
-            %                     outD(:, i) = outD(:, i)./ norm( outD(cSpec, i), 2 );
-            %                 else
-            %                     cIonName = DIonName{i};
-            %                     for j = 1:length(cIonName)
-            %                         if ~isempty( strfind( cIonName{j}, 'CH2' ) )
-            %                             w(j) = 1e-3;
-            %                         end
-            %                     end
-            %                     outD(cSpec, i) = w;
-            %                     outD(:, i) = outD(:, i)./ max( norm( outD(cSpec, i), 2 ), 1 );
-            %                 end
             outD(cSpec, i) = w;
-            %                 outD(cSpec, i) = 1;
-            if L1Flag == 0
+            if strcmp( cons, 'L2_SQUARE' ) == 1
                 outD(:, i) = outD(:, i)./ norm( outD(cSpec, i), 2 );
-            elseif L1Flag == 1
+            elseif stcmp( cons, 'L1_SQUARE' ) == 1
                 outD(:, i) = outD(:, i)./ norm( outD(cSpec, i), 1 );
             end
         end

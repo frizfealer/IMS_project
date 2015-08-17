@@ -1,6 +1,6 @@
-function [ val, meanVal, stdVal ] = LP_DL_Poiss( LINK_FUNC, aMatrix, Y, W, W0, D, lambda, phi, theta, scaleFactor, logFY, varargin )
+function [ val, dataTermsVal, lPenaltyVal, pPenaltyVal, tPenaltyVal ] = LP_DL_Poiss( LINK_FUNC, aMatrix, Y, W, W0, D, lambda, phi, theta, scaleFactor, logFY, varargin )
 %--------------------------------------------------------------------------
-%LP_DL_Poiss: ompute the negative log posterior for Dictioanry Learning 
+%LP_DL_Poiss: compute the negative log posterior for Dictioanry Learning 
 %with the Poisson distribution
 %--------------------------------------------------------------------------
 % DESCRIPTION:
@@ -19,8 +19,8 @@ function [ val, meanVal, stdVal ] = LP_DL_Poiss( LINK_FUNC, aMatrix, Y, W, W0, D
 %   compute mean of LL and std of LL for input samples.
 % OUTPUT ARGUMENTS:
 %   val, total negative log posterior in the model.
-%   meanVal, stdVal, mean and standard deviation of log posterior of the
-%   input.
+%   dataTermsVal, lPenaltyVal, pPenaltyVal, tPenaltyVal: the values of each
+%   terms
 
 [sLen, hei, wid] = size( Y );
 
@@ -46,31 +46,23 @@ for i = 2:wid
         Wwminus(:, j+(i-1)*hei) = W(:,j+(i-1)*hei) - W(:,j+(i-2)*hei);
     end
 end
+
 %compute the Log posterior
-% firstTwoTerms = 0;
-% for i = 1:hei
-%     for j = 1:wid
-%         if aMatrix(i,j) == 1
-%             firstTwoTerms = firstTwoTerms - ( scaleFactor(:, j+(i-1)*hei).*Y(:,i+(j-1)*hei) )'*preY(:,i+(j-1)*hei) + ...
-%                 sum( scaleFactor(:, j+(i-1)*hei).*exp(preY(:,i+(j-1)*hei)) );
-%         end
-%     end
-% end
 idx = aMatrix == 1;
 if strcmp( LINK_FUNC, 'log' ) == 1
-    firstTwoTermsMat = -Y(:, idx).*preY(:, idx) + exp( preY(:, idx) );
+    dataLikeliTerms = -Y(:, idx).*preY(:, idx) + exp( preY(:, idx) );
     if ~isempty( logFY )
-        firstTwoTermsMat = firstTwoTermsMat - logFY(:, idx);
+        dataLikeliTerms = dataLikeliTerms + logFY(:, idx);
     end
 elseif strcmp( LINK_FUNC, 'identity' ) == 1
-    %     preY(preY==0)=1e-32;
-    tmp = log( preY(:, idx) + 1e-8 );
-    firstTwoTermsMat = -Y(:, idx).*tmp + preY(:, idx);
+    tmp = preY(:, idx);
+    tmp(tmp~=0) = log( tmp(tmp~=0) );
+    dataLikeliTerms = -Y(:, idx).*tmp + preY(:, idx);
     if ~isempty( logFY )
-        firstTwoTermsMat = firstTwoTermsMat - logFY(:, idx);
+        dataLikeliTerms = dataLikeliTerms + logFY(:, idx);
     end
 elseif strcmp( LINK_FUNC, 'log_gaussain' ) == 1
-    firstTwoTermsMat = (log(Y(:, idx)+1e-32)-preY(:, idx)).^2;
+    dataLikeliTerms = (log(Y(:, idx))-preY(:, idx)).^2;
 elseif strcmp( LINK_FUNC, 'negative_binomial' ) == 1
     kappa = 1e-2;
     if length(varargin) == 2 && ~isempty( varargin{2} )%set varargin{1} as []
@@ -79,22 +71,18 @@ elseif strcmp( LINK_FUNC, 'negative_binomial' ) == 1
     dataTerms = -Y(:, idx)*log(kappa) - Y(:, idx).*preY(:, idx) ...
         + (Y(:, idx)+1/kappa).*log( 1+kappa*exp(preY(:, idx)) ) ...
         - gammaln( Y(:, idx)+1/kappa ) + gammaln( 1/kappa );
-    firstTwoTermsMat = dataTerms;
+    dataLikeliTerms = dataTerms;
 end
 if isempty( scaleFactor )
     scaleFactor = 1;
 end
-firstTwoTermsMat = firstTwoTermsMat * scaleFactor;
-firstTwoTerms = sum( sum( firstTwoTermsMat ) );
+dataLikeliTerms = dataLikeliTerms * scaleFactor;
+dataLikeliVal = sum( sum( dataLikeliTerms ) );
 % firstTwoTerms sum( Y(:).*z0(:) - exp(z0(:)) ) 
-val = firstTwoTerms + lambda * norm( W(:), 1 ) ...
+val = dataLikeliVal + lambda * norm( W(:), 1 ) ...
     + phi * norm( D(:), 1 ) + theta * ( norm( Whminus(:) )^2 + norm( Wwminus(:) )^2 ); %theta * ( norm( Whminus(:), 1 ) + norm( Wwminus(:), 1 ) );
-if length(varargin) == 1 && varargin{1} == 1 % meanFlag == 1
-    meanVal = mean(firstTwoTermsMat(:) + lambda * norm( W(:), 1 ) ...
-    + phi * norm( D(:), 1 ) + theta * ( norm( Whminus(:), 1 ) + norm( Wwminus(:), 1 ) ) );
-    stdVal = std(firstTwoTermsMat(:)) + lambda * norm( W(:), 1 ) ...
-    + phi * norm( D(:), 1 ) + theta * ( norm( Whminus(:), 1 ) + norm( Wwminus(:), 1 ) );
-else 
-    meanVal = [];
-    stdVal = [];
+dataTermsVal = dataLikeliVal;
+lPenaltyVal = lambda * norm( W(:), 1 ); 
+pPenaltyVal = phi * norm( D(:), 1 );
+tPenaltyVal =  theta * ( norm( Whminus(:) )^2 + norm( Wwminus(:) )^2 );
 end
